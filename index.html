@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - Proyecto Agua</title>
+    <!-- Tailwind CSS para diseño moderno y adaptado a móviles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // CONFIGURACIÓN CENTRAL - TU LINK DE GOOGLE SCRIPT
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4rIM4uX58StNiL820_Frm5M3XtD8CxcgLvsX2GyrmI7EY7w3sgG0qFRk4gHofDbpmAQ/exec";
+        
+        let bd_productos = [];
+        let bd_rubros = [];
+        let bd_proveedores = [];
+        let productoSeleccionado = null;
+    </script>
+    <style>
+        /* Estilos específicos para impresión profesional limpia */
+        @media print {
+            body * { visibility: hidden; }
+            #areaImpresion, #areaImpresion * { visibility: visible; }
+            #areaImpresion { position: absolute; left: 0; top: 0; width: 100%; font-size: 10pt; }
+            .no-print { display: none !important; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            th, td { border: 1px solid #cbd5e1; padding: 6px; text-align: left; }
+            th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+
+    <!-- CONTENEDOR PRINCIPAL WEB -->
+    <div class="max-w-md mx-auto p-4 pb-24 no-print">
+        
+        <!-- CABECERA Y COTIZACIÓN -->
+        <header class="mb-6 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
+            <h1 class="text-xl font-bold text-blue-400 text-center tracking-wide uppercase">Proyecto Agua</h1>
+            <p class="text-xs text-gray-400 text-center mb-4">Gestión de Inventario Centralizado</p>
+            
+            <div class="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-700">
+                <span class="text-sm font-medium text-gray-300">💵 Cotización Dólar hoy:</span>
+                <div class="flex items-center gap-1">
+                    <span class="text-emerald-400 font-bold">$</span>
+                    <input type="number" id="cotizacionDolar" value="1350" oninput="renderizarBusqueda()" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+        </header>
+
+        <!-- BARRA DE BÚSQUEDA INTELIGENTE -->
+        <section class="mb-6">
+            <div class="relative">
+                <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Buscar por código, nombre, rubro..." class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-inner">
+                <span class="absolute left-3 top-3.5 text-gray-500">🔍</span>
+            </div>
+            <!-- Lista Predictiva -->
+            <div id="listaResultados" class="mt-2 space-y-2 max-h-60 overflow-y-auto"></div>
+        </section>
+
+        <!-- PANEL DE CONTROL DEL PRODUCTO (DINÁMICO) -->
+        <main id="panelProducto" class="hidden space-y-6">
+            
+            <!-- TARJETA RESUMEN RÁPIDO -->
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
+                <div class="flex justify-between items-start mb-2">
+                    <span id="cardCodigo" class="bg-blue-900 text-blue-300 text-xs font-bold px-2 py-1 rounded"></span>
+                    <span id="cardRubro" class="text-xs text-gray-400 font-medium"></span>
+                </div>
+                <h2 id="cardDescripcion" class="text-lg font-bold text-white mb-3"></h2>
+                
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                        <p class="text-xs text-gray-400 uppercase mb-1">📍 Stock Lemos</p>
+                        <p id="cardStockLemos" class="text-xl font-bold text-blue-400">0</p>
+                    </div>
+                    <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                        <p class="text-xs text-gray-400 uppercase mb-1">📍 Stock Ozamis</p>
+                        <p id="cardStockOzamis" class="text-xl font-bold text-blue-400">0</p>
+                    </div>
+                    <div class="bg-gray-900 p-3 rounded-lg border border-gray-700 col-span-2">
+                        <p class="text-xs text-gray-400 uppercase mb-1">💸 Precio al Cobro</p>
+                        <p id="cardPrecioPesos" class="text-2xl font-black text-emerald-400">$ 0,00</p>
+                        <p id="cardPrecioOriginal" class="text-xs text-gray-500 mt-0.5"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN INTERFAZ DE MOVIMIENTOS (VERDE) -->
+            <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-green-500 shadow-md">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-lg">🟩</span>
+                    <h3 class="font-bold text-white text-sm uppercase tracking-wider">Mover Stock (Operación Diaria)</h3>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">1. Seleccionar Destino:</label>
+                        <select id="movSucursal" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm focus:outline-none focus:border-green-500">
+                            <option value="Stock Lemos">Sucursal Calle Lemos</option>
+                            <option value="Stock Ozamis">Sucursal Ozamis</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">2. Cantidad de Unidades:</label>
+                        <input type="number" id="movCantidad" value="1" min="1" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm font-bold text-center focus:outline-none focus:border-green-500">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 pt-1">
+                        <button onclick="ejecutarMovimiento('entrada')" class="bg-green-600 hover:bg-green-700 active:scale-95 text-white font-bold py-2.5 px-1 rounded-lg text-xs transition-all uppercase">➕ Entrada</button>
+                        <button onclick="ejecutarMovimiento('salida')" class="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold py-2.5 px-1 rounded-lg text-xs transition-all uppercase">➖ Salida</button>
+                        <button onclick="ejecutarMovimiento('ajuste')" class="bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold py-2.5 px-1 rounded-lg text-xs transition-all uppercase">🟰 Ajuste</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN EDICIÓN DE FICHA (AZUL) -->
+            <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-blue-500 shadow-md">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-lg">🟦</span>
+                    <h3 class="font-bold text-white text-sm uppercase tracking-wider">Editar Datos (Ficha de Producto)</h3>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Descripción del Artículo:</label>
+                        <input type="text" id="editDesc" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Rubro:</label>
+                            <div class="flex gap-1">
+                                <select id="editRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs focus:outline-none focus:border-blue-500"></select>
+                                <button onclick="crearAuxiliar('Rubros')" class="bg-gray-700 px-2 rounded-lg text-sm hover:bg-gray-600">➕</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Proveedor:</label>
+                            <div class="flex gap-1">
+                                <select id="editProv" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs focus:outline-none focus:border-blue-500"></select>
+                                <button onclick="crearAuxiliar('Proveedores')" class="bg-gray-700 px-2 rounded-lg text-sm hover:bg-gray-600">➕</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Moneda:</label>
+                            <select id="editMoneda" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-500">
+                                <option value="USD">USD ($)</option>
+                                <option value="ARS">ARS ($)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Precio:</label>
+                            <input type="number" id="editPrecio" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center font-bold focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Costo Variable:</label>
+                            <input type="number" id="editCosto" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                    <button onclick="guardarFichaProducto()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-2 rounded-lg text-sm mt-2 transition-all uppercase">💾 Guardar Ficha Permanente</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- SECCIÓN DE REPORTES E IMPRESIÓN PDF -->
+        <section class="mt-8 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
+            <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📋 Módulo de Impresiones & PDF</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Filtrar Criterio / Rubro:</label>
+                    <select id="repRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm focus:outline-none focus:border-blue-500">
+                        <option value="TODOS">-- Todos los Rubros --</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="generarReporte('precios')" class="bg-emerald-700 hover:bg-emerald-600 font-bold py-2.5 px-2 rounded-lg text-xs text-center transition-all">💵 Lista de Precios</button>
+                    <button onclick="generarReporte('stock')" class="bg-indigo-700 hover:bg-indigo-600 font-bold py-2.5 px-2 rounded-lg text-xs text-center transition-all">📦 Reporte de Stock</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ÁREA OCULTA EXCLUSIVA PARA EL MOTOR DE IMPRESIÓN -->
+    <div id="areaImpresion" class="hidden"></div>
+
+    <!-- SISTEMA JS DE CONTROL INTERNO -->
+    <script>
+        window.addEventListener('load', inicializarSistema);
+
+        async function inicializarSistema() {
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getInicial' })
+                });
+                const api = await res.json();
+                bd_productos = api.productos || [];
+                bd_rubros = api.rubros || [];
+                bd_proveedores = api.proveedores || [];
+                
+                actualizarMenusDesplegables();
+            } catch (e) {
+                alert("Error crítico de red al sincronizar con Google Sheets: " + e.message);
+            }
+        }
+
+        function actualizarMenusDesplegables() {
+            const rSelect = document.getElementById('editRubro');
+            const pSelect = document.getElementById('editProv');
+            const repSelect = document.getElementById('repRubro');
+            
+            rSelect.innerHTML = bd_rubros.map(r => `<option value="${r.Nombre}">${r.Nombre}</option>`).join('');
+            pSelect.innerHTML = bd_proveedores.map(p => `<option value="${p.Nombre}">${p.Nombre}</option>`).join('');
+            repSelect.innerHTML = '<option value="TODOS">-- Todos los Rubros --</option>' + bd_rubros.map(r => `<option value="${r.Nombre}">${r.Nombre}</option>`).join('');
+        }
+
+        function renderizarBusqueda() {
+            const query = document.getElementById('buscador').value.toLowerCase().trim();
+            const contenedor = document.getElementById('listaResultados');
+            
+            if (!query) { contenedor.innerHTML = ''; return; }
+            
+            const filtrados = bd_productos.filter(p => 
+                p.ID.toString().toLowerCase().includes(query) ||
+                p.Descripción.toLowerCase().includes(query) ||
+                p.Rubro.toLowerCase().includes(query) ||
+                p.Proveedor.toLowerCase().includes(query)
+            );
+            
+            contenedor.innerHTML = filtrados.slice(0, 5).map(p => `
+                <div onclick="seleccionarProducto('${p.ID}')" class="bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-700 hover:border-blue-500 transition-all shadow-sm">
+                    <div class="flex justify-between font-bold text-xs text-blue-400"><span>${p.ID}</span><span class="text-gray-500">${p.Rubro}</span></div>
+                    <div class="text-sm text-white mt-1 font-medium">${p.Descripción}</div>
+                </div>
+            `).join('');
+        }
+
+        function seleccionarProducto(id) {
+            productoSeleccionado = bd_productos.find(p => p.ID.toString() === id.toString());
+            document.getElementById('listaResultados').innerHTML = '';
+            document.getElementById('buscador').value = '';
+            
+            if (!productoSeleccionado) return;
+            
+            // Render Tarjeta de Control
+            document.getElementById('cardCodigo').innerText = productoSeleccionado.ID;
+            document.getElementById('cardRubro').innerText = productoSeleccionado.Rubro;
+            document.getElementById('cardDescripcion').innerText = productoSeleccionado.Descripción;
+            document.getElementById('cardStockLemos').innerText = `${productoSeleccionado['Stock Lemos']} u.`;
+            document.getElementById('cardStockOzamis').innerText = `${productoSeleccionado['Stock Ozamis']} u.`;
+            
+            // Procesamiento de Precios e Inyección cambiaria
+            const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
+            let finalArs = 0;
+            if (productoSeleccionado['Moneda (ARS/USD)'] === 'USD') {
+                finalArs = productoSeleccionado.Precio * cot;
+                document.getElementById('cardPrecioOriginal').innerText = `Base: USD $${productoSeleccionado.Precio.toFixed(2)}`;
+            } else {
+                finalArs = productoSeleccionado.Precio;
+                document.getElementById('cardPrecioOriginal').innerText = `Base: ARS Estable`;
+            }
+            document.getElementById('cardPrecioPesos').innerText = `$ ${finalArs.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            // Cargar en Inputs de Edición
+            document.getElementById('editDesc').value = productoSeleccionado.Descripción;
+            document.getElementById('editRubro').value = productoSeleccionado.Rubro;
+            document.getElementById('editProv').value = productoSeleccionado.Proveedor;
+            document.getElementById('editMoneda').value = productoSeleccionado['Moneda (ARS/USD)'];
+            document.getElementById('editPrecio').value = productoSeleccionado.Precio;
+            document.getElementById('editCosto').value = productoSeleccionado.Costo;
+            
+            document.getElementById('panelProducto').classList.remove('hidden');
+        }
+
+        async function ejecutarMovimiento(tipo) {
+            if (!productoSeleccionado) return;
+            const suc = document.getElementById('movSucursal').value;
+            const cant = parseInt(document.getElementById('movCantidad').value) || 0;
+            
+            if (cant <= 0) { alert("Ingresá un número mayor a cero."); return; }
+            
+            // Feedback visual instantáneo
+            const originalText = document.getElementById(suc === 'Stock Lemos' ? 'cardStockLemos' : 'cardStockOzamis').innerText;
+            document.getElementById(suc === 'Stock Lemos' ? 'cardStockLemos' : 'cardStockOzamis').innerText = "⏳...";
+            
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'moverStock',
+                        data: { ID: productoSeleccionado.ID, sucursal: suc, tipo: tipo, cantidad: cant }
+                    })
+                });
+                const rta = await res.json();
+                if (rta.success) {
+                    productoSeleccionado[suc] = rta.nuevoStock;
+                    document.getElementById(suc === 'Stock Lemos' ? 'cardStockLemos' : 'cardStockOzamis').innerText = `${rta.nuevoStock} u.`;
+                } else {
+                    alert("Error: " + rta.error);
+                }
+            } catch (e) {
+                document.getElementById(suc === 'Stock Lemos' ? 'cardStockLemos' : 'cardStockOzamis').innerText = originalText;
+                alert("Fallo de red al asentar movimiento.");
+            }
+        }
+
+        async function guardarFichaProducto() {
+            if (!productoSeleccionado) return;
+            
+            const prodModificado = {
+                ID: productoSeleccionado.ID,
+                Descripción: document.getElementById('editDesc').value,
+                Rubro: document.getElementById('editRubro').value,
+                Proveedor: document.getElementById('editProv').value,
+                "Moneda (ARS/USD)": document.getElementById('editMoneda').value,
+                Precio: parseFloat(document.getElementById('editPrecio').value) || 0,
+                Costo: parseFloat(document.getElementById('editCosto').value) || 0,
+                "Stock Lemos": productoSeleccionado["Stock Lemos"],
+                "Stock Ozamis": productoSeleccionado["Stock Ozamis"]
+            };
+            
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'guardarProducto', data: prodModificado })
+                });
+                const rta = await res.json();
+                if (rta.success) {
+                    alert("Ficha guardada con éxito en la nube.");
+                    // Actualizar memoria local
+                    Object.assign(productoSeleccionado, prodModificado);
+                    seleccionarProducto(productoSeleccionado.ID);
+                }
+            } catch (e) {
+                alert("Error de conexión al salvar ficha.");
+            }
+        }
+
+        async function crearAuxiliar(tablaDestino) {
+            const nombre = prompt(`Ingresá el nombre del nuevo elemento para la lista de ${tablaDestino}:`);
+            if (!nombre) return;
+            
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'agregarAuxiliar', tabla: tablaDestino, nombre: nombre })
+                });
+                const rta = await res.json();
+                if (rta.success) {
+                    if (tablaDestino === 'Rubros') bd_rubros.push({ Nombre: nombre });
+                    if (tablaDestino === 'Proveedores') bd_proveedores.push({ Nombre: nombre });
+                    actualizarMenusDesplegables();
+                }
+            } catch (e) {
+                alert("Error al inyectar dato dinámico.");
+            }
+        }
+
+        function generarReporte(tipo) {
+            const rubroFiltro = document.getElementById('repRubro').value;
+            const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
+            const fecha = new Date().toLocaleDateString('es-AR');
+            
+            let filtrados = bd_productos;
+            if (rubroFiltro !== 'TODOS') {
+                filtrados = bd_productos.filter(p => p.Rubro === rubroFiltro);
+            }
+            
+            let html = '';
+            const area = document.getElementById('areaImpresion');
+            
+            if (tipo === 'precios') {
+                html = `
+                    <div style="font-family: Arial, sans-serif; padding: 10px; color:#111;">
+                        <h2 style="text-align:center; margin-bottom:2px; text-transform:uppercase; font-size:16pt; color:#1e3a8a;">Proyecto Agua</h2>
+                        <h3 style="text-align:center; margin-top:0; font-size:12pt; font-weight:normal; color:#475569;">Lista de Precios Oficial</h3>
+                        <p style="font-size:9pt; color:#64748b; margin-bottom:15px;">Fecha de Emisión: ${fecha} | Tipo de Cambio de Referencia: $${cot.toFixed(2)}</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:15%">Código</th>
+                                    <th style="width:55%">Descripción del Artículo</th>
+                                    <th style="width:15%">Rubro</th>
+                                    <th style="width:15%; text-align:right;">Precio (ARS)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filtrados.map(p => {
+                                    let pFinal = p["Moneda (ARS/USD)"] === 'USD' ? p.Precio * cot : p.Precio;
+                                    return `
+                                        <tr>
+                                            <td><strong>${p.ID}</strong></td>
+                                            <td>${p.Descripción}</td>
+                                            <td>${p.Rubro}</td>
+                                            <td style="text-align:right; font-weight:bold;">$ ${pFinal.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (tipo === 'stock') {
+                html = `
+                    <div style="font-family: Arial, sans-serif; padding: 10px; color:#111;">
+                        <h2 style="text-align:center; margin-bottom:2px; text-transform:uppercase; font-size:16pt; color:#1e3a8a;">Proyecto Agua</h2>
+                        <h3 style="text-align:center; margin-top:0; font-size:12pt; font-weight:normal; color:#475569;">Reporte General de Existencias e Inventario</h3>
+                        <p style="font-size:9pt; color:#64748b; margin-bottom:15px;">Fecha de Captura: ${fecha} | Filtro Aplicado: ${rubroFiltro}</p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:15%">Código</th>
+                                    <th style="width:45%">Descripción del Artículo</th>
+                                    <th style="width:15%">Rubro</th>
+                                    <th style="width:12.5%; text-align:center;">Suc. Lemos</th>
+                                    <th style="width:12.5%; text-align:center;">Suc. Ozamis</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filtrados.map(p => `
+                                    <tr>
+                                        <td><strong>${p.ID}</strong></td>
+                                        <td>${p.Descripción}</td>
+                                        <td>${p.Rubro}</td>
+                                        <td style="text-align:center; font-weight:bold; color:${p["Stock Lemos"] > 0 ? '#16a34a':'#dc2626'};">${p["Stock Lemos"]} u.</td>
+                                        <td style="text-align:center; font-weight:bold; color:${p["Stock Ozamis"] > 0 ? '#16a34a':'#dc2626'};">${p["Stock Ozamis"]} u.</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            area.innerHTML = html;
+            window.print();
+        }
+    </script>
+</body>
+</html>
