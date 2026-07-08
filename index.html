@@ -4,10 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - Proyecto Agua</title>
-    <!-- Tailwind CSS para diseño moderno y adaptado a móviles -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // CONFIGURACIÓN CENTRAL - TU LINK DE GOOGLE SCRIPT
+        // ==========================================
+        // CONFIGURACIÓN DE SEGURIDAD Y CONEXIÓN
+        // ==========================================
+        const CONTRASEÑA_CORRECTA = "toreto"; 
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4rIM4uX58StNiL820_Frm5M3XtD8CxcgLvsX2GyrmI7EY7w3sgG0qFRk4gHofDbpmAQ/exec";
+        
+        let bd_productos = [];
+        let bd_rubros = [];
+        let bd_proveedores = [];
+        let productoSeleccionado = null;
+
+        // Función de bloqueo instantáneo
+        function verificarAcceso() {
+            let intento = prompt("Ingresá la contraseña de Proyecto Agua para acceder:");
+            
+            if (intento === CONTRASEÑA_CORRECTA) {
+                // Si es correcta, guardamos una sesión corta para que no la pida a cada rato al recargar
+                sessionStorage.setItem("acceso_inventario", "concedido");
+                document.getElementById("contenedorWeb").classList.remove("hidden");
+                inicializarSistema(); // Arranca la carga de Google Sheets
+            } else {
+                alert("Contraseña incorrecta. Acceso denegado.");
+                window.location.href = "https://www.google.com"; // Lo expulsa
+            }
+        }
+
+        // Modificamos el arranque del sistema
+        window.addEventListener('load', () => {
+            if (sessionStorage.getItem("acceso_inventario") === "concedido") {
+                document.getElementById("contenedorWeb").classList.remove("hidden");
+                inicializarSistema();
+            } else {
+                verificarAcceso();
+            }
+        });
+    </script>        // CONFIGURACIÓN CENTRAL - TU LINK DE GOOGLE SCRIPT
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4rIM4uX58StNiL820_Frm5M3XtD8CxcgLvsX2GyrmI7EY7w3sgG0qFRk4gHofDbpmAQ/exec";
         
         let bd_productos = [];
@@ -29,7 +62,7 @@
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
-
+<div id="contenedorWeb" class="max-w-md mx-auto p-4 pb-24 no-print hidden">
     <!-- CONTENEDOR PRINCIPAL WEB -->
     <div class="max-w-md mx-auto p-4 pb-24 no-print">
         
