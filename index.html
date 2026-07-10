@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - Proyecto Agua</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librerías para generación de PDF directo en el dispositivo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    
     <script>
         const CONTRASEÑA_CORRECTA = "Agua2026"; 
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4rIM4uX58StNiL820_Frm5M3XtD8CxcgLvsX2GyrmI7EY7w3sgG0qFRk4gHofDbpmAQ/exec";
@@ -199,30 +203,19 @@
             </section>
         </main>
 
-        <!-- REPORTES REFORMULADOS -->
+        <!-- MÓDULO DE GENERACIÓN DE ARCHIVOS PDF DIRECTOS -->
         <section class="mt-8 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
-            <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📋 Módulo de Impresiones & PDF</h3>
+            <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📋 Descarga Directa de PDF</h3>
             <div class="space-y-3">
                 <select id="repRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white">
                     <option value="TODOS">-- Todos los Rubros --</option>
                 </select>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="generarReporteHTML('precios')" class="bg-emerald-700 hover:bg-emerald-600 font-bold py-2.5 rounded-lg text-xs text-white uppercase tracking-wider">💵 Ver Precios</button>
-                    <button onclick="generarReporteHTML('stock')" class="bg-indigo-700 hover:bg-indigo-600 font-bold py-2.5 rounded-lg text-xs text-white uppercase tracking-wider">📦 Ver Stock</button>
+                    <button onclick="descargarPDFDirecto('precios')" class="bg-emerald-700 hover:bg-emerald-600 font-bold py-2.5 rounded-lg text-xs text-white uppercase tracking-wider shadow">📥 Bajar Precios</button>
+                    <button onclick="descargarPDFDirecto('stock')" class="bg-indigo-700 hover:bg-indigo-600 font-bold py-2.5 rounded-lg text-xs text-white uppercase tracking-wider shadow">📥 Bajar Stock</button>
                 </div>
             </div>
         </section>
-    </div>
-
-    <!-- PANTALLA COMPLETA EMULADORA DE REPORTE (NUEVO SISTEMA QUE NO SE QUEDA EN BLANCO) -->
-    <div id="pantallaReporte" class="hidden fixed inset-0 bg-white text-gray-900 z-50 overflow-y-auto p-6">
-        <div class="max-w-4xl mx-auto">
-            <div class="flex justify-between items-center border-b-2 border-gray-300 pb-4 mb-6 no-print-btn">
-                <button onclick="cerrarReporte()" class="bg-gray-800 text-white font-bold px-4 py-2 rounded-lg text-sm">⬅️ Volver al Inventario</button>
-                <button onclick="window.print()" class="bg-blue-600 text-white font-bold px-6 py-2 rounded-lg text-sm shadow-md">🖨️ Mandar a Imprimir / Guardar PDF</button>
-            </div>
-            <div id="contenidoInyectadoReporte"></div>
-        </div>
     </div>
 
     <script>
@@ -264,7 +257,6 @@
             repSelect.innerHTML = '<option value="TODOS">-- Todos los Rubros --</option>' + rHtml;
         }
 
-        // BUSCADOR ULTRA-ÁGIL MULTI-TÉRMINO
         function renderizarBusqueda() {
             const inputText = document.getElementById('buscador').value.toLowerCase().trim();
             const contenedor = document.getElementById('listaResultados');
@@ -318,85 +310,87 @@
             document.getElementById('panelProducto').classList.remove('hidden');
         }
 
-        // NUEVO MODULO CONTROL DE PDF VISUAL PREVIO
-        function generarReporteHTML(tipo) {
+        // NUEVA FUNCIÓN AUTOMÁTICA DE CREACIÓN DE DOCUMENTO PDF EN DISPOSITIVO
+        function descargarPDFDirecto(tipo) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+            
             const rubroFiltro = document.getElementById('repRubro').value;
             const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
             const fecha = new Date().toLocaleDateString('es-AR');
             
-            // Permitimos listar todo lo que tenga al menos un ID o descripción válida
             let filtrados = bd_productos.filter(p => p.ID);
             if (rubroFiltro !== 'TODOS') {
                 filtrados = filtrados.filter(p => p.Rubro === rubroFiltro);
             }
             
             if (filtrados.length === 0) {
-                alert("No hay ítems cargados válidos para el rubro seleccionado.");
+                alert("No hay artículos cargados para este rubro para procesar.");
                 return;
             }
 
-            let tablaHTML = '';
+            // Encabezados estéticos del PDF corporativo
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(20);
+            doc.setTextColor(30, 58, 138); // Azul oscuro
+            doc.text("PROYECTO AGUA", 14, 18);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139); // Gris
+            doc.setFont("helvetica", "normal");
+            
+            let tituloDocumento = "";
+            let columnas = [];
+            let filas = [];
+
             if (tipo === 'precios') {
-                tablaHTML = `
-                    <h1 style="font-family:sans-serif; text-align:center; color:#1e3a8a; margin-bottom:2px; font-size:22px; text-transform:uppercase; font-weight:bold;">Proyecto Agua</h1>
-                    <h3 style="font-family:sans-serif; text-align:center; color:#475569; margin-top:0; font-size:14px; font-weight:normal; margin-bottom:15px;">Lista de Precios Oficial</h3>
-                    <p style="font-family:sans-serif; font-size:11px; color:#64748b; margin-bottom:15px;">Fecha de emisión: ${fecha} | Dólar de referencia: $${cot}</p>
-                    <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:12px;">
-                        <thead>
-                            <tr style="background-color:#f1f5f9; border-bottom:2px solid #cbd5e1;">
-                                <th style="padding:8px; text-align:left; border:1px solid #e2e8f0;">Código</th>
-                                <th style="padding:8px; text-align:left; border:1px solid #e2e8f0;">Descripción</th>
-                                <th style="padding:8px; text-align:left; border:1px solid #e2e8f0;">Rubro</th>
-                                <th style="padding:8px; text-align:right; border:1px solid #e2e8f0;">Precio Venta</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${filtrados.map(p => {
-                                let pFinal = p['Moneda (ARS/USD)'] === 'USD' ? (p.Precio || 0) * cot : (p.Precio || 0);
-                                return `
-                                <tr style="border-bottom:1px solid #e2e8f0;">
-                                    <td style="padding:8px; font-weight:bold; border:1px solid #e2e8f0;">${p.ID}</td>
-                                    <td style="padding:8px; border:1px solid #e2e8f0;">${p.Descripción || '(Sin nombre)'}</td>
-                                    <td style="padding:8px; color:#64748b; border:1px solid #e2e8f0;">${p.Rubro || 'Gral'}</td>
-                                    <td style="padding:8px; text-align:right; font-weight:bold; color:#16a34a; border:1px solid #e2e8f0;">$ ${pFinal.toLocaleString('es-AR', {minimumFractionDigits:2})}</td>
-                                </tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>`;
+                tituloDocumento = `Lista de Precios Oficial - Rubro: ${rubroFiltro}`;
+                doc.text(tituloDocumento, 14, 24);
+                doc.text(`Fecha: ${fecha} | Referencia Dólar: $${cot}`, 14, 29);
+                
+                columnas = ["Código", "Descripción / Artículo", "Rubro", "Precio Final"];
+                filas = filtrados.map(p => {
+                    let pFinal = p['Moneda (ARS/USD)'] === 'USD' ? (p.Precio || 0) * cot : (p.Precio || 0);
+                    return [
+                        p.ID,
+                        p.Descripción || '(Sin descripción)',
+                        p.Rubro || 'Gral',
+                        `$ ${pFinal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`
+                    ];
+                });
             } else {
-                tablaHTML = `
-                    <h1 style="font-family:sans-serif; text-align:center; color:#1e3a8a; margin-bottom:2px; font-size:22px; text-transform:uppercase; font-weight:bold;">Proyecto Agua</h1>
-                    <h3 style="font-family:sans-serif; text-align:center; color:#475569; margin-top:0; font-size:14px; font-weight:normal; margin-bottom:15px;">Reporte General de Stock</h3>
-                    <p style="font-family:sans-serif; font-size:11px; color:#64748b; margin-bottom:15px;">Fecha de emisión: ${fecha}</p>
-                    <table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:12px;">
-                        <thead>
-                            <tr style="background-color:#f1f5f9; border-bottom:2px solid #cbd5e1;">
-                                <th style="padding:8px; text-align:left; border:1px solid #e2e8f0;">Código</th>
-                                <th style="padding:8px; text-align:left; border:1px solid #e2e8f0;">Descripción</th>
-                                <th style="padding:8px; text-align:center; border:1px solid #e2e8f0;">Stock Lemos</th>
-                                <th style="padding:8px; text-align:center; border:1px solid #e2e8f0;">Stock Ozamis</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${filtrados.map(p => `
-                                <tr style="border-bottom:1px solid #e2e8f0;">
-                                    <td style="padding:8px; font-weight:bold; border:1px solid #e2e8f0;">${p.ID}</td>
-                                    <td style="padding:8px; border:1px solid #e2e8f0;">${p.Descripción || '(Sin nombre)'}</td>
-                                    <td style="padding:8px; text-align:center; font-weight:bold; color:#2563eb; border:1px solid #e2e8f0;">${p['Stock Lemos'] || 0} u.</td>
-                                    <td style="padding:8px; text-align:center; font-weight:bold; color:#2563eb; border:1px solid #e2e8f0;">${p['Stock Ozamis'] || 0} u.</td>
-                                </tr>`).join('')}
-                        </tbody>
-                    </table>`;
+                tituloDocumento = `Reporte de Stock de Inventario - Rubro: ${rubroFiltro}`;
+                doc.text(tituloDocumento, 14, 24);
+                doc.text(`Fecha de emisión: ${fecha}`, 14, 29);
+                
+                columnas = ["Código", "Descripción / Artículo", "Stock Lemos", "Stock Ozamis"];
+                filas = filtrados.map(p => [
+                    p.ID,
+                    p.Descripción || '(Sin descripción)',
+                    `${p['Stock Lemos'] || 0} u.`,
+                    `${p['Stock Ozamis'] || 0} u.`
+                ]);
             }
 
-            document.getElementById('contenidoInyectadoReporte').innerHTML = tablaHTML;
-            document.getElementById('contenedorWeb').classList.add('hidden');
-            document.getElementById('pantallaReporte').classList.remove('hidden');
-        }
+            // Inyección de la tabla estructurada con autoTable
+            doc.autoTable({
+                startY: 34,
+                head: [columnas],
+                body: filas,
+                theme: 'striped',
+                headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 2.5 },
+                columnStyles: {
+                    0: { fontStyle: 'bold', cellWidth: 25 },
+                    1: { cellWidth: 'auto' },
+                    2: { halign: tipo === 'precios' ? 'left' : 'center' },
+                    3: { halign: tipo === 'precios' ? 'right' : 'center', fontStyle: 'bold' }
+                }
+            });
 
-        function cerrarReporte() {
-            document.getElementById('pantallaReporte').classList.add('hidden');
-            document.getElementById('contenedorWeb').classList.remove('hidden');
+            // Descarga directa del archivo en el navegador
+            const nombreArchivo = `${tipo}_proyecto_agua_${fecha.replace(/\//g, '-')}.pdf`;
+            doc.save(nombreArchivo);
         }
 
         async function registrarProductoNuevo() {
@@ -457,14 +451,5 @@
             } catch (e) { alert("Error."); }
         }
     </script>
-    
-    <style>
-        /* Estilos específicos para impresión limpia del reporte inyectado */
-        @media print {
-            body { background-color: white !important; color: black !important; }
-            #contenedorWeb, .no-print-btn { display: none !important; }
-            #pantallaReporte { position: absolute; left: 0; top: 0; width: 100%; display: block !important; p: 0; }
-        }
-    </style>
 </body>
 </html>
