@@ -4,12 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - Proyecto Agua</title>
-    <!-- Tailwind CSS para diseño moderno y adaptado a móviles -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // ==========================================
-        // CONFIGURACIÓN DE SEGURIDAD Y CONEXIÓN
-        // ==========================================
         const CONTRASEÑA_CORRECTA = "Agua2026"; 
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx4rIM4uX58StNiL820_Frm5M3XtD8CxcgLvsX2GyrmI7EY7w3sgG0qFRk4gHofDbpmAQ/exec";
         
@@ -53,10 +49,8 @@
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
 
-    <!-- CONTENEDOR PRINCIPAL WEB -->
     <div id="contenedorWeb" class="max-w-md mx-auto p-4 pb-24 no-print hidden">
         
-        <!-- CABECERA Y COTIZACIÓN -->
         <header class="mb-6 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
             <h1 class="text-xl font-bold text-blue-400 text-center tracking-wide uppercase">Proyecto Agua</h1>
             <p class="text-xs text-gray-400 text-center mb-4">Gestión de Inventario Centralizado</p>
@@ -70,27 +64,27 @@
             </div>
         </header>
 
-        <!-- ACCIÓN PRINCIPAL: BUSCAR O CREAR -->
         <div class="grid grid-cols-2 gap-2 mb-6">
             <button onclick="cambiarModo('buscar')" id="btnModoBuscar" class="bg-blue-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">🔍 Buscar / Operar</button>
             <button onclick="cambiarModo('crear')" id="btnModoCrear" class="bg-gray-800 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">➕ Alta Nuevo Producto</button>
         </div>
 
-        <!-- SECCIÓN 1: BUSCADOR INTELIGENTE -->
+        <!-- BUSCADOR INTELIGENTE MULTI-PALABRA -->
         <section id="seccionBuscador" class="mb-6">
             <div class="relative">
-                <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Buscar por código, nombre, rubro..." class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-inner">
+                <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Ej: 'alguicida 1l nataclor' o 'repuesto dolphin'" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-inner">
                 <span class="absolute left-3 top-3.5 text-gray-500">🔍</span>
             </div>
-            <div id="listaResultados" class="mt-2 space-y-2 max-h-60 overflow-y-auto"></div>
+            <!-- Lista ampliada a un alto máximo mayor para scroll cómodo -->
+            <div id="listaResultados" class="mt-2 space-y-2 max-h-96 overflow-y-auto"></div>
         </section>
 
-        <!-- SECCIÓN 2: FORMULARIO DE ALTA NUEVA (NUEVO BOTÓN OPERATIVO) -->
+        <!-- FORMULARIO DE ALTA -->
         <section id="seccionAltaNueva" class="hidden bg-gray-800 p-4 rounded-xl border-l-4 border-emerald-500 shadow-md mb-6 space-y-3">
             <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-2">✨ Ingresar Nuevo Artículo al Sistema</h3>
             <div>
                 <label class="block text-xs text-gray-400 mb-1">Código Único (ID):</label>
-                <input type="text" id="nuevoID" placeholder="Ej: DOL-01, OXIPOOL-1L" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                <input type="text" id="nuevoID" placeholder="Ej: DOL-01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
             </div>
             <div>
                 <label class="block text-xs text-gray-400 mb-1">Descripción / Nombre Completo:</label>
@@ -126,7 +120,7 @@
                 </div>
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">Costo Variable:</label>
-                    <input type="number" id="nuevoCosto" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white focus:outline-none focus:border-emerald-500">
+                    <input type="number" id="nuevoCosto" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center focus:outline-none focus:border-emerald-500">
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2 pt-1">
@@ -142,9 +136,8 @@
             <button onclick="registrarProductoNuevo()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 rounded-lg text-sm mt-3 transition-all uppercase">🚀 Dar de Alta e Inyectar a Sheets</button>
         </section>
 
-        <!-- PANEL DE CONTROL DEL PRODUCTO SELECCIONADO (DINÁMICO) -->
+        <!-- PANEL DE CONTROL DEL PRODUCTO SELECCIONADO -->
         <main id="panelProducto" class="hidden space-y-6">
-            <!-- TARJETA RESUMEN RÁPIDO -->
             <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
                 <div class="flex justify-between items-start mb-2">
                     <span id="cardCodigo" class="bg-blue-900 text-blue-300 text-xs font-bold px-2 py-1 rounded"></span>
@@ -168,7 +161,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN INTERFAZ DE MOVIMIENTOS (VERDE) -->
+            <!-- INTERFAZ DE MOVIMIENTOS -->
             <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-green-500 shadow-md">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-lg">🟩</span>
@@ -194,7 +187,7 @@
                 </div>
             </section>
 
-            <!-- SECCIÓN EDICIÓN DE FICHA (AZUL) -->
+            <!-- EDICIÓN DE FICHA -->
             <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-blue-500 shadow-md">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-lg">🟦</span>
@@ -237,7 +230,7 @@
             </section>
         </main>
 
-        <!-- SECCIÓN DE REPORTES E IMPRESIÓN PDF -->
+        <!-- CONFIGURACIÓN DE REPORTES -->
         <section class="mt-8 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
             <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📋 Módulo de Impresiones & PDF</h3>
             <div class="space-y-3">
@@ -257,7 +250,6 @@
 
     <div id="areaImpresion" class="hidden"></div>
 
-    <!-- SISTEMA JS DE CONTROL INTERNO -->
     <script>
         async function inicializarSistema() {
             try {
@@ -311,27 +303,40 @@
             repSelect.innerHTML = '<option value="TODOS">-- Todos los Rubros --</option>' + bd_rubros.map(r => `<option value="${r.Nombre}">${r.Nombre}</option>`).join('');
         }
 
+        // ==========================================
+        // MOTOR DE BÚSQUEDA PREDICTIVO INTELIGENTE (MULTI-PALABRA)
+        // ==========================================
         function renderizarBusqueda() {
-            const query = document.getElementById('buscador').value.toLowerCase().trim();
+            const inputText = document.getElementById('buscador').value.toLowerCase().trim();
             const contenedor = document.getElementById('listaResultados');
-            if (!query) { contenedor.innerHTML = ''; return; }
+            if (!inputText) { contenedor.innerHTML = ''; return; }
             
-            const filtrados = bd_productos.filter(p => 
-                p.ID.toString().toLowerCase().includes(query) ||
-                p.Descripción.toLowerCase().includes(query) ||
-                p.Rubro.toLowerCase().includes(query) ||
-                p.Proveedor.toLowerCase().includes(query)
-            );
+            // Fraccionar la búsqueda por términos/palabras individuales
+            const terminosBusqueda = inputText.split(/\s+/);
+            
+            // Filtrar productos que contengan TODOS los términos escritos
+            const filtrados = bd_productos.filter(p => {
+                const contenidoProducto = `
+                    ${p.ID ? p.ID.toString().toLowerCase() : ''} 
+                    ${p.Descripción ? p.Descripción.toLowerCase() : ''} 
+                    ${p.Rubro ? p.Rubro.toLowerCase() : ''} 
+                    ${p.Proveedor ? p.Proveedor.toLowerCase() : ''}
+                `;
+                
+                // Evaluar si cada palabra individual está presente en los metadatos del ítem
+                return terminosBusqueda.every(termino => contenidoProducto.includes(termino));
+            });
             
             if(filtrados.length === 0) {
-                contenedor.innerHTML = `<div class="text-xs text-gray-500 text-center py-2">No se encontraron productos con ese criterio.</div>`;
+                contenedor.innerHTML = `<div class="text-xs text-gray-500 text-center py-2">No se encontraron productos coincidentes.</div>`;
                 return;
             }
 
-            contenedor.innerHTML = filtrados.slice(0, 5).map(p => `
+            // Ampliado el límite visual de visualización de 5 a 15 artículos simultáneos
+            contenedor.innerHTML = filtrados.slice(0, 15).map(p => `
                 <div onclick="seleccionarProducto('${p.ID}')" class="bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-700 hover:border-blue-500 transition-all shadow-sm">
-                    <div class="flex justify-between font-bold text-xs text-blue-400"><span>${p.ID}</span><span class="text-gray-500">${p.Rubro}</span></div>
-                    <div class="text-sm text-white mt-1 font-medium">${p.Descripción}</div>
+                    <div class="flex justify-between font-bold text-xs text-blue-400"><span>${p.ID}</span><span class="text-gray-500">${p.Rubro || 'Sin Rubro'}</span></div>
+                    <div class="text-sm text-white mt-1 font-medium">${p.Descripción || '(Error de Registro - Celda Vacía en Sheets)'}</div>
                 </div>
             `).join('');
         }
@@ -343,22 +348,22 @@
             if (!productoSeleccionado) return;
             
             document.getElementById('cardCodigo').innerText = productoSeleccionado.ID;
-            document.getElementById('cardRubro').innerText = productoSeleccionado.Rubro;
-            document.getElementById('cardDescripcion').innerText = productoSeleccionado.Descripción;
-            document.getElementById('cardStockLemos').innerText = `${productoSeleccionado['Stock Lemos']} u.`;
-            document.getElementById('cardStockOzamis').innerText = `${productoSeleccionado['Stock Ozamis']} u.`;
+            document.getElementById('cardRubro').innerText = productoSeleccionado.Rubro || 'Sin Rubro';
+            document.getElementById('cardDescripcion').innerText = productoSeleccionado.Descripción || 'Sin Descripción';
+            document.getElementById('cardStockLemos').innerText = `${productoSeleccionado['Stock Lemos'] || 0} u.`;
+            document.getElementById('cardStockOzamis').innerText = `${productoSeleccionado['Stock Ozamis'] || 0} u.`;
             
             const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
-            let finalArs = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? productoSeleccionado.Precio * cot : productoSeleccionado.Precio;
-            document.getElementById('cardPrecioOriginal').innerText = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? `Base: USD $${productoSeleccionado.Precio.toFixed(2)}` : `Base: ARS Estable`;
+            let finalArs = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? (productoSeleccionado.Precio || 0) * cot : (productoSeleccionado.Precio || 0);
+            document.getElementById('cardPrecioOriginal').innerText = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? `Base: USD $${(productoSeleccionado.Precio || 0).toFixed(2)}` : `Base: ARS Estable`;
             document.getElementById('cardPrecioPesos').innerText = `$ ${finalArs.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
             
-            document.getElementById('editDesc').value = productoSeleccionado.Descripción;
-            document.getElementById('editRubro').value = productoSeleccionado.Rubro;
-            document.getElementById('editProv').value = productoSeleccionado.Proveedor;
-            document.getElementById('editMoneda').value = productoSeleccionado['Moneda (ARS/USD)'];
-            document.getElementById('editPrecio').value = productoSeleccionado.Precio;
-            document.getElementById('editCosto').value = productoSeleccionado.Costo;
+            document.getElementById('editDesc').value = productoSeleccionado.Descripción || '';
+            document.getElementById('editRubro').value = productoSeleccionado.Rubro || '';
+            document.getElementById('editProv').value = productoSeleccionado.Proveedor || '';
+            document.getElementById('editMoneda').value = productoSeleccionado['Moneda (ARS/USD)'] || 'ARS';
+            document.getElementById('editPrecio').value = productoSeleccionado.Precio || 0;
+            document.getElementById('editCosto').value = productoSeleccionado.Costo || 0;
             
             document.getElementById('panelProducto').classList.remove('hidden');
         }
@@ -389,7 +394,6 @@
                 if (rta.success) {
                     alert(`¡Artículo ${id} dado de alta con éxito!`);
                     bd_productos.push(prod);
-                    // Resetear formulario
                     document.getElementById('nuevoID').value = '';
                     document.getElementById('nuevoDesc').value = '';
                     document.getElementById('nuevoPrecio').value = '0';
@@ -460,19 +464,28 @@
             } catch (e) { alert("Error."); }
         }
 
+        // GENERACIÓN DE REPORTES RESISTENTE A CAMPOS VACÍOS
         function generarReporte(tipo) {
             const rubroFiltro = document.getElementById('repRubro').value;
             const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
             const fecha = new Date().toLocaleDateString('es-AR');
-            let filtrados = rubroFiltro !== 'TODOS' ? bd_productos.filter(p => p.Rubro === rubroFiltro) : bd_productos;
             
+            // Seguridad: Filtrar y omitir registros rotos (sin ID o sin Descripción) para que no rompan el PDF
+            let validos = bd_productos.filter(p => p.ID && p.Descripción);
+            let filtrados = rubroFiltro !== 'TODOS' ? validos.filter(p => p.Rubro === rubroFiltro) : validos;
+            
+            if (filtrados.length === 0) {
+                alert("No hay ningún producto cargado correctamente bajo este criterio de rubro para poder listar.");
+                return;
+            }
+
             let html = '';
             const area = document.getElementById('areaImpresion');
             
             if (tipo === 'precios') {
-                html = `<div style="font-family: Arial, sans-serif; padding: 10px; color:#111;"><h2 style="text-align:center; text-transform:uppercase; font-size:16pt; color:#1e3a8a;">Proyecto Agua</h2><h3 style="text-align:center; margin-top:0; font-size:12pt; font-weight:normal;">Lista de Precios Oficial</h3><p style="font-size:9pt; color:#64748b;">Fecha: ${fecha} | Referencia Dólar: $${cot.toFixed(2)}</p><table><thead><tr><th>Código</th><th>Descripción</th><th>Rubro</th><th style="text-align:right;">Precio (ARS)</th></tr></thead><tbody>${filtrados.map(p => { let pFinal = p["Moneda (ARS/USD)"] === 'USD' ? p.Precio * cot : p.Precio; return `<tr><td><strong>${p.ID}</strong></td><td>${p.Descripción}</td><td>${p.Rubro}</td><td style="text-align:right; font-weight:bold;">$ ${pFinal.toLocaleString('es-AR', {minimumFractionDigits:2})}</td></tr>`; }).join('')}</tbody></table></div>`;
+                html = `<div style="font-family: Arial, sans-serif; padding: 10px; color:#111;"><h2 style="text-align:center; text-transform:uppercase; font-size:16pt; color:#1e3a8a;">Proyecto Agua</h2><h3 style="text-align:center; margin-top:0; font-size:12pt; font-weight:normal;">Lista de Precios Oficial</h3><p style="font-size:9pt; color:#64748b;">Fecha: ${fecha} | Referencia Dólar: $${cot.toFixed(2)}</p><table><thead><tr><th>Código</th><th>Descripción</th><th>Rubro</th><th style="text-align:right;">Precio (ARS)</th></tr></thead><tbody>${filtrados.map(p => { let pFinal = p["Moneda (ARS/USD)"] === 'USD' ? (p.Precio || 0) * cot : (p.Precio || 0); return `<tr><td><strong>${p.ID}</strong></td><td>${p.Descripción}</td><td>${p.Rubro || 'General'}</td><td style="text-align:right; font-weight:bold;">$ ${pFinal.toLocaleString('es-AR', {minimumFractionDigits:2})}</td></tr>`; }).join('')}</tbody></table></div>`;
             } else {
-                html = `<div style="font-family: Arial, sans-serif; padding: 10px; color:#111;"><h2 style="text-align:center; text-transform:uppercase; font-size:16pt; color:#1e3a8a;">Proyecto Agua</h2><h3 style="text-align:center; margin-top:0; font-size:12pt; font-weight:normal;">Reporte General de Stock</h3><p style="font-size:9pt; color:#64748b;">Fecha: ${fecha}</p><table><thead><tr><th>Código</th><th>Descripción</th><th>Rubro</th><th style="text-align:center;">Lemos</th><th style="text-align:center;">Ozamis</th></tr></thead><tbody>${filtrados.map(p => `<tr><td><strong>${p.ID}</strong></td><td>${p.Descripción}</td><td>${p.Rubro}</td><td style="text-align:center; font-weight:bold;">${p["Stock Lemos"]} u.</td><td style="text-align:center; font-weight:bold;">${p["Stock Ozamis"]} u.</td></tr>`).join('')}</tbody></table></div>`;
+                html = `<div style="font-family: Arial, sans-serif; padding: 10px; color:#111;"><h2 style="text-align:center; text-transform:uppercase; font-size:16pt; color:#1e3a8a;">Proyecto Agua</h2><h3 style="text-align:center; margin-top:0; font-size:12pt; font-weight:normal;">Reporte General de Stock</h3><p style="font-size:9pt; color:#64748b;">Fecha: ${fecha}</p><table><thead><tr><th>Código</th><th>Descripción</th><th>Rubro</th><th style="text-align:center;">Lemos</th><th style="text-align:center;">Ozamis</th></tr></thead><tbody>${filtrados.map(p => `<tr><td><strong>${p.ID}</strong></td><td>${p.Descripción}</td><td>${p.Rubro || 'General'}</td><td style="text-align:center; font-weight:bold;">${p["Stock Lemos"] || 0} u.</td><td style="text-align:center; font-weight:bold;">${p["Stock Ozamis"] || 0} u.</td></tr>`).join('')}</tbody></table></div>`;
             }
             area.innerHTML = html; window.print();
         }
