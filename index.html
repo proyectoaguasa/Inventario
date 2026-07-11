@@ -50,10 +50,13 @@
             <p class="text-xs text-gray-400 text-center mb-4">Gestión de Inventario Centralizado</p>
             
             <div class="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-700">
-                <span class="text-sm font-medium text-gray-300">💵 Cotización Dólar hoy:</span>
+                <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-300">💵 Cotización Dólar:</span>
+                    <span id="estadoDolar" class="text-[10px] text-gray-500 italic">Buscando cotización hoy...</span>
+                </div>
                 <div class="flex items-center gap-1">
                     <span class="text-emerald-400 font-bold">$</span>
-                    <input type="number" id="cotizacionDolar" value="1350" oninput="renderizarBusqueda()" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+                    <input type="number" id="cotizacionDolar" value="1350" oninput="actualizarPreciosEnPantalla(); renderizarBusqueda();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
                 </div>
             </div>
         </header>
@@ -219,7 +222,32 @@
     </div>
 
     <script>
+        async function consultarDolarDía() {
+            try {
+                // Consulta automatizada a API financiera argentina (Dólar Blue venta)
+                const respuesta = await fetch("https://api.argentinadatos.com/v1/cotizaciones/dolares/blue");
+                const datos = await respuesta.json();
+                
+                if(datos && datos.venta) {
+                    document.getElementById('cotizacionDolar').value = Math.round(datos.venta);
+                    document.getElementById('estadoDolar').innerText = "⚡ Actualizado hoy (Dólar Blue)";
+                    document.getElementById('estadoDolar').className = "text-[10px] text-emerald-400 italic";
+                } else {
+                    marcarErrorDolar();
+                }
+            } catch (e) {
+                marcarErrorDolar();
+            }
+        }
+
+        function marcarErrorDolar() {
+            document.getElementById('estadoDolar').innerText = "⚠️ Usando valor base (Manual)";
+            document.getElementById('estadoDolar').className = "text-[10px] text-amber-500 italic";
+        }
+
         async function inicializarSistema() {
+            // Ejecuta la consulta de dólar en paralelo a la de Sheets
+            consultarDolarDía();
             try {
                 const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'getInicial' }) });
                 const api = await res.json();
@@ -295,10 +323,7 @@
             document.getElementById('cardStockLemos').innerText = `${productoSeleccionado['Stock Lemos'] || 0} u.`;
             document.getElementById('cardStockOzamis').innerText = `${productoSeleccionado['Stock Ozamis'] || 0} u.`;
             
-            const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
-            let finalArs = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? (productoSeleccionado.Precio || 0) * cot : (productoSeleccionado.Precio || 0);
-            document.getElementById('cardPrecioOriginal').innerText = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? `Base: USD $${(productoSeleccionado.Precio || 0).toFixed(2)}` : `Base: ARS`;
-            document.getElementById('cardPrecioPesos').innerText = `$ ${finalArs.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            actualizarPreciosEnPantalla();
             
             document.getElementById('editDesc').value = productoSeleccionado.Descripción || '';
             document.getElementById('editRubro').value = productoSeleccionado.Rubro || '';
@@ -310,7 +335,15 @@
             document.getElementById('panelProducto').classList.remove('hidden');
         }
 
-        // NUEVA FUNCIÓN AUTOMÁTICA DE CREACIÓN DE DOCUMENTO PDF EN DISPOSITIVO
+        // Función separada para que recalcule dinámicamente si cambian el dólar a mano
+        function actualizarPreciosEnPantalla() {
+            if (!productoSeleccionado) return;
+            const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
+            let finalArs = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? (productoSeleccionado.Precio || 0) * cot : (productoSeleccionado.Precio || 0);
+            document.getElementById('cardPrecioOriginal').innerText = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? `Base: USD $${(productoSeleccionado.Precio || 0).toFixed(2)}` : `Base: ARS`;
+            document.getElementById('cardPrecioPesos').innerText = `$ ${finalArs.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+        }
+
         function descargarPDFDirecto(tipo) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
@@ -329,14 +362,13 @@
                 return;
             }
 
-            // Encabezados estéticos del PDF corporativo
             doc.setFont("helvetica", "bold");
             doc.setFontSize(20);
-            doc.setTextColor(30, 58, 138); // Azul oscuro
+            doc.setTextColor(30, 58, 138); 
             doc.text("PROYECTO AGUA", 14, 18);
             
             doc.setFontSize(10);
-            doc.setTextColor(100, 116, 139); // Gris
+            doc.setTextColor(100, 116, 139); 
             doc.setFont("helvetica", "normal");
             
             let tituloDocumento = "";
@@ -372,7 +404,6 @@
                 ]);
             }
 
-            // Inyección de la tabla estructurada con autoTable
             doc.autoTable({
                 startY: 34,
                 head: [columnas],
@@ -388,7 +419,6 @@
                 }
             });
 
-            // Descarga directa del archivo en el navegador
             const nombreArchivo = `${tipo}_proyecto_agua_${fecha.replace(/\//g, '-')}.pdf`;
             doc.save(nombreArchivo);
         }
