@@ -40,116 +40,119 @@
         });
     </script>
 </head>
-<body class="bg-[#778c43] text-gray-100 font-sans min-h-screen transition-colors duration-300">
+<body class="bg-[url('bg.jpg')] bg-cover bg-center bg-no-repeat bg-fixed text-gray-100 font-sans min-h-screen">
 
-    <!-- CONTENEDOR PRINCIPAL INTERFAZ -->
-    <div id="contenedorWeb" class="max-w-md mx-auto p-4 pb-24 hidden">
+    <!-- CAPA DE OSCURECIMIENTO Y DESENFOQUE PARA LEGIBILIDAD -->
+    <div class="min-h-screen bg-black/40 backdrop-blur-sm w-full py-4 pb-24">
         
-        <header class="mb-6 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-xl">
-            <h1 class="text-xl font-bold text-blue-400 text-center tracking-wide uppercase">Proyecto Agua</h1>
-            <p class="text-xs text-gray-400 text-center mb-4">Gestión de Inventario Centralizado</p>
+        <!-- CONTENEDOR PRINCIPAL INTERFAZ -->
+        <div id="contenedorWeb" class="max-w-md mx-auto px-4 hidden">
             
-            <div class="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-700">
-                <div class="flex flex-col">
-                    <span class="text-sm font-medium text-gray-300">💵 Cotización Dólar:</span>
-                    <span id="estadoDolar" class="text-[10px] text-emerald-400 italic">Guardado y activo</span>
-                </div>
-                <div class="flex items-center gap-1">
-                    <span class="text-emerald-400 font-bold">$</span>
-                    <input type="number" id="cotizacionDolar" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
-                </div>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-2 gap-2 mb-6">
-            <button onclick="cambiarModo('buscar')" id="btnModoBuscar" class="bg-blue-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">🔍 Buscar / Operar</button>
-            <button onclick="cambiarModo('crear')" id="btnModoCrear" class="bg-gray-800 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">➕ Alta Nuevo Producto</button>
-        </div>
-
-        <!-- BUSCADOR INTELIGENTE -->
-        <section id="seccionBuscador" class="mb-6">
-            <div class="relative">
-                <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Ej: 'alg 1l nataclor' o 'rep dolphin'" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-lg">
-                <span class="absolute left-3 top-3.5 text-gray-500">🔍</span>
-            </div>
-            <div id="listaResultados" class="mt-2 space-y-2 max-h-96 overflow-y-auto"></div>
-        </section>
-
-        <!-- FORMULARIO DE ALTA -->
-        <section id="seccionAltaNueva" class="hidden bg-gray-800 p-4 rounded-xl border-l-4 border-emerald-500 shadow-lg mb-6 space-y-3">
-            <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-2">✨ Ingresar Nuevo Artículo al Sistema</h3>
-            <div>
-                <label class="block text-xs text-gray-400 mb-1">Código Único (ID):</label>
-                <input type="text" id="nuevoID" placeholder="Ej: DOL-01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-            </div>
-            <div>
-                <label class="block text-xs text-gray-400 mb-1">Descripción / Nombre Completo:</label>
-                <input type="text" id="nuevoDesc" placeholder="Ej: Alguicida Nataclor 1 Litro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Rubro:</label>
-                    <div class="flex gap-1">
-                        <select id="nuevoRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"></select>
-                        <button onclick="crearAuxiliar('Rubros')" class="bg-gray-700 px-2 rounded-lg text-sm hover:bg-gray-600">➕</button>
+            <header class="mb-6 bg-gray-800/95 p-4 rounded-xl border border-gray-700 shadow-xl backdrop-blur-md">
+                <h1 class="text-xl font-bold text-blue-400 text-center tracking-wide uppercase">Proyecto Agua</h1>
+                <p class="text-xs text-gray-400 text-center mb-4">Gestión de Inventario Centralizado</p>
+                
+                <div class="flex items-center justify-between bg-gray-900/90 p-3 rounded-lg border border-gray-700">
+                    <div class="flex flex-col">
+                        <span class="text-sm font-medium text-gray-300">💵 Cotización Dólar:</span>
+                        <span id="estadoDolar" class="text-[10px] text-emerald-400 italic">Guardado y activo</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-emerald-400 font-bold">$</span>
+                        <input type="number" id="cotizacionDolar" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
                     </div>
                 </div>
+            </header>
+
+            <div class="grid grid-cols-2 gap-2 mb-6">
+                <button onclick="cambiarModo('buscar')" id="btnModoBuscar" class="bg-blue-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">🔍 Buscar / Operar</button>
+                <button onclick="cambiarModo('crear')" id="btnModoCrear" class="bg-gray-800/90 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">➕ Alta Nuevo Producto</button>
+            </div>
+
+            <!-- BUSCADOR INTELIGENTE -->
+            <section id="seccionBuscador" class="mb-6">
+                <div class="relative">
+                    <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Ej: 'alg 1l nataclor' o 'rep dolphin'" class="w-full bg-gray-800/95 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-lg">
+                    <span class="absolute left-3 top-3.5 text-gray-500">🔍</span>
+                </div>
+                <div id="listaResultados" class="mt-2 space-y-2 max-h-96 overflow-y-auto"></div>
+            </section>
+
+            <!-- FORMULARIO DE ALTA -->
+            <section id="seccionAltaNueva" class="hidden bg-gray-800/95 p-4 rounded-xl border-l-4 border-emerald-500 shadow-lg mb-6 space-y-3">
+                <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-2">✨ Ingresar Nuevo Artículo al Sistema</h3>
                 <div>
-                    <label class="block text-xs text-gray-400 mb-1">Proveedor:</label>
-                    <div class="flex gap-1">
-                        <select id="nuevoProv" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"></select>
-                        <button onclick="crearAuxiliar('Proveedores')" class="bg-gray-700 px-2 rounded-lg text-sm hover:bg-gray-600">➕</button>
+                    <label class="block text-xs text-gray-400 mb-1">Código Único (ID):</label>
+                    <input type="text" id="nuevoID" placeholder="Ej: DOL-01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Descripción / Nombre Completo:</label>
+                    <input type="text" id="nuevoDesc" placeholder="Ej: Alguicida Nataclor 1 Litro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Rubro:</label>
+                        <div class="flex gap-1">
+                            <select id="nuevoRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"></select>
+                            <button onclick="crearAuxiliar('Rubros')" class="bg-gray-700 px-2 rounded-lg text-sm hover:bg-gray-600">➕</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Proveedor:</label>
+                        <div class="flex gap-1">
+                            <select id="nuevoProv" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"></select>
+                            <button onclick="crearAuxiliar('Proveedores')" class="bg-gray-700 px-2 rounded-lg text-sm hover:bg-gray-600">➕</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="grid grid-cols-3 gap-2">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Moneda:</label>
-                    <select id="nuevoMoneda" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                        <option value="USD">USD ($)</option>
-                        <option value="ARS">ARS ($)</option>
-                    </select>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Moneda:</label>
+                        <select id="nuevoMoneda" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="USD">USD ($)</option>
+                            <option value="ARS">ARS ($)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Precio Base:</label>
+                        <input type="number" id="nuevoPrecio" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Costo Variable:</label>
+                        <input type="number" id="nuevoCosto" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center focus:outline-none focus:border-emerald-500">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Precio Base:</label>
-                    <input type="number" id="nuevoPrecio" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold focus:outline-none focus:border-emerald-500">
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Stock Lemos Inicial:</label>
+                        <input type="number" id="nuevoStockLemos" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1">Stock Ozamis Inicial:</label>
+                        <input type="number" id="nuevoStockOzamis" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white focus:outline-none focus:border-emerald-500">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Costo Variable:</label>
-                    <input type="number" id="nuevoCosto" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center focus:outline-none focus:border-emerald-500">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 pt-1">
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Stock Lemos Inicial:</label>
-                    <input type="number" id="nuevoStockLemos" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-400 mb-1">Stock Ozamis Inicial:</label>
-                    <input type="number" id="nuevoStockOzamis" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white focus:outline-none focus:border-emerald-500">
-                </div>
-            </div>
-            <button onclick="registrarProductoNuevo()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 rounded-lg text-sm mt-3 transition-all uppercase shadow-md">🚀 Dar de Alta e Inyectar a Sheets</button>
-        </section>
+                <button onclick="registrarProductoNuevo()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 rounded-lg text-sm mt-3 transition-all uppercase shadow-md">🚀 Dar de Alta e Inyectar a Sheets</button>
+            </section>
 
         <!-- PANEL DE OPERACIÓN -->
         <main id="panelProducto" class="hidden space-y-6">
-            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg">
+            <div class="bg-gray-800/95 p-4 rounded-xl border border-gray-700 shadow-lg">
                 <div class="flex justify-between items-start mb-2">
                     <span id="cardCodigo" class="bg-blue-900 text-blue-300 text-xs font-bold px-2 py-1 rounded"></span>
                     <span id="cardRubro" class="text-xs text-gray-400 font-medium"></span>
                 </div>
                 <h2 id="cardDescripcion" class="text-lg font-bold text-white mb-3"></h2>
                 <div class="grid grid-cols-2 gap-3 text-center">
-                    <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                    <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-700">
                         <p class="text-xs text-gray-400 uppercase mb-1">📍 Stock Lemos</p>
                         <p id="cardStockLemos" class="text-xl font-bold text-blue-400">0</p>
                     </div>
-                    <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                    <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-700">
                         <p class="text-xs text-gray-400 uppercase mb-1">📍 Stock Ozamis</p>
                         <p id="cardStockOzamis" class="text-xl font-bold text-blue-400">0</p>
                     </div>
-                    <div class="bg-gray-900 p-3 rounded-lg border border-gray-700 col-span-2">
+                    <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-700 col-span-2">
                         <p class="text-xs text-gray-400 uppercase mb-1">💸 Precio al Cobro</p>
                         <p id="cardPrecioPesos" class="text-2xl font-black text-emerald-400">$ 0,00</p>
                         <p id="cardPrecioOriginal" class="text-xs text-gray-500 mt-0.5"></p>
@@ -158,7 +161,7 @@
             </div>
 
             <!-- MOVIMIENTOS DIARIOS -->
-            <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-green-500 shadow-lg">
+            <section class="bg-gray-800/95 p-4 rounded-xl border-l-4 border-green-500 shadow-lg">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-lg">🟩</span>
                     <h3 class="font-bold text-white text-sm uppercase tracking-wider">Mover Stock</h3>
@@ -182,7 +185,7 @@
             </section>
 
             <!-- EDICIÓN DE FICHA -->
-            <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-blue-500 shadow-lg">
+            <section class="bg-gray-800/95 p-4 rounded-xl border-l-4 border-blue-500 shadow-lg">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-lg">🟦</span>
                     <h3 class="font-bold text-white text-sm uppercase tracking-wider">Editar Ficha</h3>
@@ -207,7 +210,7 @@
         </main>
 
         <!-- GENERACIÓN DE ARCHIVOS PDF DIRECTOS -->
-        <section class="mt-8 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg">
+        <section class="mt-8 bg-gray-800/95 p-4 rounded-xl border border-gray-700 shadow-lg backdrop-blur-md">
             <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📋 Descarga Directa de PDF</h3>
             <div class="space-y-3">
                 <select id="repRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white">
@@ -220,6 +223,7 @@
             </div>
         </section>
     </div>
+</div>
 
     <script>
         function cargarCotizacionGuardada() {
@@ -258,11 +262,11 @@
             const secC = document.getElementById('seccionAltaNueva');
             if (modo === 'buscar') {
                 btnB.className = "bg-blue-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
-                btnC.className = "bg-gray-800 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
+                btnC.className = "bg-gray-800/90 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
                 secB.classList.remove('hidden'); secC.classList.add('hidden');
             } else {
                 btnC.className = "bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
-                btnB.className = "bg-gray-800 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
+                btnB.className = "bg-gray-800/90 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
                 secC.classList.remove('hidden'); secB.classList.add('hidden');
                 document.getElementById('panelProducto').classList.add('hidden');
             }
