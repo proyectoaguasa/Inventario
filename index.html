@@ -52,11 +52,11 @@
             <div class="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-700">
                 <div class="flex flex-col">
                     <span class="text-sm font-medium text-gray-300">💵 Cotización Dólar:</span>
-                    <span id="estadoDolar" class="text-[10px] text-gray-500 italic">Buscando cotización hoy...</span>
+                    <span id="estadoDolar" class="text-[10px] text-emerald-400 italic">Guardado y activo</span>
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="text-emerald-400 font-bold">$</span>
-                    <input type="number" id="cotizacionDolar" value="1350" oninput="actualizarPreciosEnPantalla(); renderizarBusqueda();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+                    <input type="number" id="cotizacionDolar" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
                 </div>
             </div>
         </header>
@@ -66,7 +66,7 @@
             <button onclick="cambiarModo('crear')" id="btnModoCrear" class="bg-gray-800 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">➕ Alta Nuevo Producto</button>
         </div>
 
-        <!-- BUSCADOR INTELIGENTE POR PALABRAS CRUZADAS -->
+        <!-- BUSCADOR INTELIGENTE -->
         <section id="seccionBuscador" class="mb-6">
             <div class="relative">
                 <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Ej: 'alg 1l nataclor' o 'rep dolphin'" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-inner">
@@ -206,7 +206,7 @@
             </section>
         </main>
 
-        <!-- MÓDULO DE GENERACIÓN DE ARCHIVOS PDF DIRECTOS -->
+        <!-- GENERACIÓN DE ARCHIVOS PDF DIRECTOS -->
         <section class="mt-8 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
             <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📋 Descarga Directa de PDF</h3>
             <div class="space-y-3">
@@ -222,32 +222,28 @@
     </div>
 
     <script>
-        async function consultarDolarDía() {
-            try {
-                // Consulta automatizada a API financiera argentina (Dólar Blue venta)
-                const respuesta = await fetch("https://api.argentinadatos.com/v1/cotizaciones/dolares/blue");
-                const datos = await respuesta.json();
-                
-                if(datos && datos.venta) {
-                    document.getElementById('cotizacionDolar').value = Math.round(datos.venta);
-                    document.getElementById('estadoDolar').innerText = "⚡ Actualizado hoy (Dólar Blue)";
-                    document.getElementById('estadoDolar').className = "text-[10px] text-emerald-400 italic";
-                } else {
-                    marcarErrorDolar();
-                }
-            } catch (e) {
-                marcarErrorDolar();
+        // Carga la cotización guardada previamente o usa 1350 por defecto si está vacío
+        function cargarCotizacionGuardada() {
+            const dolarGuardado = localStorage.getItem("ultima_cotizacion_agua");
+            if (dolarGuardado) {
+                document.getElementById('cotizacionDolar').value = dolarGuardado;
+            } else {
+                document.getElementById('cotizacionDolar').value = "1350";
+                localStorage.setItem("ultima_cotizacion_agua", "1350");
             }
         }
 
-        function marcarErrorDolar() {
-            document.getElementById('estadoDolar').innerText = "⚠️ Usando valor base (Manual)";
-            document.getElementById('estadoDolar').className = "text-[10px] text-amber-500 italic";
+        // Cada vez que escribís un nuevo número, se guarda automáticamente al instante
+        function guardarYActualizarDolar() {
+            const nuevoValor = document.getElementById('cotizacionDolar').value || "1";
+            localStorage.setItem("ultima_cotizacion_agua", nuevoValor);
+            actualizarPreciosEnPantalla(); 
+            renderizarBusqueda();
         }
 
         async function inicializarSistema() {
-            // Ejecuta la consulta de dólar en paralelo a la de Sheets
-            consultarDolarDía();
+            // Carga el último valor guardado por vos en este dispositivo
+            cargarCotizacionGuardada();
             try {
                 const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'getInicial' }) });
                 const api = await res.json();
@@ -335,7 +331,6 @@
             document.getElementById('panelProducto').classList.remove('hidden');
         }
 
-        // Función separada para que recalcule dinámicamente si cambian el dólar a mano
         function actualizarPreciosEnPantalla() {
             if (!productoSeleccionado) return;
             const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
@@ -358,7 +353,7 @@
             }
             
             if (filtrados.length === 0) {
-                alert("No hay artículos cargados para este rubro para procesar.");
+                alert("No hay artículos cargados para este rubro.");
                 return;
             }
 
