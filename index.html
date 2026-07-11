@@ -40,12 +40,12 @@
         });
     </script>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+<body class="bg-[#778c43] text-gray-100 font-sans min-h-screen transition-colors duration-300">
 
     <!-- CONTENEDOR PRINCIPAL INTERFAZ -->
     <div id="contenedorWeb" class="max-w-md mx-auto p-4 pb-24 hidden">
         
-        <header class="mb-6 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
+        <header class="mb-6 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-xl">
             <h1 class="text-xl font-bold text-blue-400 text-center tracking-wide uppercase">Proyecto Agua</h1>
             <p class="text-xs text-gray-400 text-center mb-4">Gestión de Inventario Centralizado</p>
             
@@ -69,14 +69,14 @@
         <!-- BUSCADOR INTELIGENTE -->
         <section id="seccionBuscador" class="mb-6">
             <div class="relative">
-                <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Ej: 'alg 1l nataclor' o 'rep dolphin'" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-inner">
+                <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Ej: 'alg 1l nataclor' o 'rep dolphin'" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-lg">
                 <span class="absolute left-3 top-3.5 text-gray-500">🔍</span>
             </div>
             <div id="listaResultados" class="mt-2 space-y-2 max-h-96 overflow-y-auto"></div>
         </section>
 
         <!-- FORMULARIO DE ALTA -->
-        <section id="seccionAltaNueva" class="hidden bg-gray-800 p-4 rounded-xl border-l-4 border-emerald-500 shadow-md mb-6 space-y-3">
+        <section id="seccionAltaNueva" class="hidden bg-gray-800 p-4 rounded-xl border-l-4 border-emerald-500 shadow-lg mb-6 space-y-3">
             <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-2">✨ Ingresar Nuevo Artículo al Sistema</h3>
             <div>
                 <label class="block text-xs text-gray-400 mb-1">Código Único (ID):</label>
@@ -129,12 +129,12 @@
                     <input type="number" id="nuevoStockOzamis" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white focus:outline-none focus:border-emerald-500">
                 </div>
             </div>
-            <button onclick="registrarProductoNuevo()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 rounded-lg text-sm mt-3 transition-all uppercase">🚀 Dar de Alta e Inyectar a Sheets</button>
+            <button onclick="registrarProductoNuevo()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 rounded-lg text-sm mt-3 transition-all uppercase shadow-md">🚀 Dar de Alta e Inyectar a Sheets</button>
         </section>
 
         <!-- PANEL DE OPERACIÓN -->
         <main id="panelProducto" class="hidden space-y-6">
-            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg">
                 <div class="flex justify-between items-start mb-2">
                     <span id="cardCodigo" class="bg-blue-900 text-blue-300 text-xs font-bold px-2 py-1 rounded"></span>
                     <span id="cardRubro" class="text-xs text-gray-400 font-medium"></span>
@@ -158,7 +158,7 @@
             </div>
 
             <!-- MOVIMIENTOS DIARIOS -->
-            <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-green-500 shadow-md">
+            <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-green-500 shadow-lg">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-lg">🟩</span>
                     <h3 class="font-bold text-white text-sm uppercase tracking-wider">Mover Stock</h3>
@@ -182,7 +182,7 @@
             </section>
 
             <!-- EDICIÓN DE FICHA -->
-            <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-blue-500 shadow-md">
+            <section class="bg-gray-800 p-4 rounded-xl border-l-4 border-blue-500 shadow-lg">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-lg">🟦</span>
                     <h3 class="font-bold text-white text-sm uppercase tracking-wider">Editar Ficha</h3>
@@ -201,13 +201,13 @@
                         <input type="number" id="editPrecio" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
                         <input type="number" id="editCosto" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white">
                     </div>
-                    <button onclick="guardarFichaProducto()" class="w-full bg-blue-600 font-bold py-2 rounded-lg text-xs uppercase text-white">💾 Guardar Ficha</button>
+                    <button onclick="guardarFichaProducto()" class="w-full bg-blue-600 font-bold py-2 rounded-lg text-xs uppercase text-white shadow-md">💾 Guardar Ficha</button>
                 </div>
             </section>
         </main>
 
         <!-- GENERACIÓN DE ARCHIVOS PDF DIRECTOS -->
-        <section class="mt-8 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-md">
+        <section class="mt-8 bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg">
             <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📋 Descarga Directa de PDF</h3>
             <div class="space-y-3">
                 <select id="repRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white">
@@ -222,7 +222,6 @@
     </div>
 
     <script>
-        // Carga la cotización guardada previamente o usa 1350 por defecto si está vacío
         function cargarCotizacionGuardada() {
             const dolarGuardado = localStorage.getItem("ultima_cotizacion_agua");
             if (dolarGuardado) {
@@ -233,7 +232,6 @@
             }
         }
 
-        // Cada vez que escribís un nuevo número, se guarda automáticamente al instante
         function guardarYActualizarDolar() {
             const nuevoValor = document.getElementById('cotizacionDolar').value || "1";
             localStorage.setItem("ultima_cotizacion_agua", nuevoValor);
@@ -242,7 +240,6 @@
         }
 
         async function inicializarSistema() {
-            // Carga el último valor guardado por vos en este dispositivo
             cargarCotizacionGuardada();
             try {
                 const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'getInicial' }) });
@@ -295,12 +292,12 @@
             });
             
             if(filtrados.length === 0) {
-                contenedor.innerHTML = `<div class="text-xs text-gray-500 text-center py-2">Sin coincidencias.</div>`;
+                contenedor.innerHTML = `<div class="text-xs text-gray-900 font-bold text-center py-2 bg-white/80 rounded-lg">Sin coincidencia.</div>`;
                 return;
             }
 
             contenedor.innerHTML = filtrados.slice(0, 15).map(p => `
-                <div onclick="seleccionarProducto('${p.ID}')" class="bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-700 hover:border-blue-500 transition shadow-sm">
+                <div onclick="seleccionarProducto('${p.ID}')" class="bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-700 hover:border-blue-500 transition shadow-md">
                     <div class="flex justify-between font-bold text-xs text-blue-400"><span>${p.ID}</span><span class="text-gray-500">${p.Rubro || 'Gral'}</span></div>
                     <div class="text-sm text-white mt-1 font-medium">${p.Descripción || 'Sin descripción'}</div>
                 </div>
