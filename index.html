@@ -54,16 +54,39 @@
             
             <header class="mb-4 bg-gray-800/95 p-4 rounded-xl border border-gray-700 shadow-xl backdrop-blur-md">
                 <h1 class="text-xl font-bold text-blue-400 text-center tracking-wide uppercase">Proyecto Agua</h1>
-                <p class="text-xs text-gray-400 text-center mb-4">Gestión de Inventario Centralizado</p>
+                <p class="text-xs text-gray-400 text-center mb-3">Gestión de Inventario Centralizado</p>
                 
-                <div class="flex items-center justify-between bg-gray-900/90 p-3 rounded-lg border border-gray-700">
-                    <div class="flex flex-col">
-                        <span class="text-sm font-medium text-gray-300">💵 Cotización Dólar:</span>
+                <!-- SECCIÓN DE COTIZACIONES DE DÓLAR MULTIPLE -->
+                <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-700 space-y-2">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-1">
+                        <span class="text-xs font-bold text-gray-300 uppercase">💵 Cotizaciones de Dólar</span>
                         <span id="estadoDolar" class="text-[10px] text-emerald-400 italic">Guardado y activo</span>
                     </div>
-                    <div class="flex items-center gap-1">
-                        <span class="text-emerald-400 font-bold">$</span>
-                        <input type="number" id="cotizacionDolar" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+
+                    <div class="grid grid-cols-1 gap-2 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">Dólar Oficial:</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-emerald-400 font-bold">$</span>
+                                <input type="number" id="cotizacionDolarOficial" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-sky-300">Dólar Nataclor:</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-sky-400 font-bold">$</span>
+                                <input type="number" id="cotizacionDolarNataclor" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-sky-400 focus:outline-none focus:border-sky-500">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-amber-300">Dólar Vulcano:</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-amber-400 font-bold">$</span>
+                                <input type="number" id="cotizacionDolarVulcano" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-amber-400 focus:outline-none focus:border-amber-500">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -119,8 +142,10 @@
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Moneda:</label>
                         <select id="nuevoMoneda" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                            <option value="USD">USD ($)</option>
                             <option value="ARS">ARS ($)</option>
+                            <option value="USD">USD Oficial ($)</option>
+                            <option value="USD_NATACLOR">USD Nataclor ($)</option>
+                            <option value="USD_VULCANO">USD Vulcano ($)</option>
                         </select>
                     </div>
                     <div>
@@ -208,8 +233,10 @@
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <select id="editMoneda" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white">
-                                <option value="USD">USD</option>
-                                <option value="ARS">ARS</option>
+                                <option value="ARS">ARS ($)</option>
+                                <option value="USD">USD Oficial ($)</option>
+                                <option value="USD_NATACLOR">USD Nataclor ($)</option>
+                                <option value="USD_VULCANO">USD Vulcano ($)</option>
                             </select>
                             <input type="number" id="editPrecio" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
                             <input type="number" id="editCosto" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white">
@@ -311,21 +338,38 @@
 
     <script>
         function cargarCotizacionGuardada() {
-            const dolarGuardado = localStorage.getItem("ultima_cotizacion_agua");
-            if (dolarGuardado) {
-                document.getElementById('cotizacionDolar').value = dolarGuardado;
-            } else {
-                document.getElementById('cotizacionDolar').value = "1350";
-                localStorage.setItem("ultima_cotizacion_agua", "1350");
-            }
+            document.getElementById('cotizacionDolarOficial').value = localStorage.getItem("cotiz_dolar_oficial") || "1350";
+            document.getElementById('cotizacionDolarNataclor').value = localStorage.getItem("cotiz_dolar_nataclor") || "1350";
+            document.getElementById('cotizacionDolarVulcano').value = localStorage.getItem("cotiz_dolar_vulcano") || "1350";
         }
 
         function guardarYActualizarDolar() {
-            const nuevoValor = document.getElementById('cotizacionDolar').value || "1";
-            localStorage.setItem("ultima_cotizacion_agua", nuevoValor);
+            const ofi = document.getElementById('cotizacionDolarOficial').value || "1";
+            const nat = document.getElementById('cotizacionDolarNataclor').value || "1";
+            const vul = document.getElementById('cotizacionDolarVulcano').value || "1";
+
+            localStorage.setItem("cotiz_dolar_oficial", ofi);
+            localStorage.setItem("cotiz_dolar_nataclor", nat);
+            localStorage.setItem("cotiz_dolar_vulcano", vul);
+
             actualizarPreciosEnPantalla(); 
             renderizarBusqueda();
             renderizarItemsPresupuesto();
+        }
+
+        function obtenerPrecioPesosCalculado(prod) {
+            const precioBase = prod.Precio || 0;
+            const moneda = prod['Moneda (ARS/USD)'] || 'ARS';
+
+            const cotOficial = parseFloat(document.getElementById('cotizacionDolarOficial').value) || 1;
+            const cotNataclor = parseFloat(document.getElementById('cotizacionDolarNataclor').value) || 1;
+            const cotVulcano = parseFloat(document.getElementById('cotizacionDolarVulcano').value) || 1;
+
+            if (moneda === 'USD' || moneda === 'USD Oficial') return precioBase * cotOficial;
+            if (moneda === 'USD_NATACLOR' || moneda === 'USD Nataclor') return precioBase * cotNataclor;
+            if (moneda === 'USD_VULCANO' || moneda === 'USD Vulcano') return precioBase * cotVulcano;
+            
+            return precioBase; // ARS
         }
 
         async function inicializarSistema() {
@@ -419,9 +463,16 @@
 
         function actualizarPreciosEnPantalla() {
             if (!productoSeleccionado) return;
-            const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
-            let finalArs = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? (productoSeleccionado.Precio || 0) * cot : (productoSeleccionado.Precio || 0);
-            document.getElementById('cardPrecioOriginal').innerText = productoSeleccionado['Moneda (ARS/USD)'] === 'USD' ? `Base: USD $${(productoSeleccionado.Precio || 0).toFixed(2)}` : `Base: ARS`;
+            
+            let finalArs = obtenerPrecioPesosCalculado(productoSeleccionado);
+            let moneda = productoSeleccionado['Moneda (ARS/USD)'] || 'ARS';
+            
+            let etiquetaBase = `Base: ARS`;
+            if (moneda !== 'ARS') {
+                etiquetaBase = `Base: USD $${(productoSeleccionado.Precio || 0).toFixed(2)} (${moneda.replace('_', ' ')})`;
+            }
+
+            document.getElementById('cardPrecioOriginal').innerText = etiquetaBase;
             document.getElementById('cardPrecioPesos').innerText = `$ ${finalArs.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
         }
 
@@ -478,11 +529,7 @@
         function confirmarAgregarInventario() {
             if(!prodSeleccionadoPresupuesto) return;
             const cant = parseInt(document.getElementById('presupCantInv').value) || 1;
-            const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
-            
-            let unitarioArs = prodSeleccionadoPresupuesto['Moneda (ARS/USD)'] === 'USD' 
-                ? (prodSeleccionadoPresupuesto.Precio || 0) * cot 
-                : (prodSeleccionadoPresupuesto.Precio || 0);
+            let unitarioArs = obtenerPrecioPesosCalculado(prodSeleccionadoPresupuesto);
 
             itemsPresupuesto.push({
                 descripcion: prodSeleccionadoPresupuesto.Descripción,
@@ -563,7 +610,7 @@
             // ENCABEZADO PROYECTO AGUA
             doc.setFont("helvetica", "bold");
             doc.setFontSize(22);
-            doc.setTextColor(30, 58, 138); // Azul oscuro
+            doc.setTextColor(30, 58, 138); 
             doc.text("PROYECTO AGUA", 14, 18);
 
             doc.setFontSize(10);
@@ -619,7 +666,7 @@
             const finalY = doc.lastAutoTable.finalY + 8;
             doc.setFont("helvetica", "bold");
             doc.setFontSize(12);
-            doc.setTextColor(16, 185, 129); // Verde
+            doc.setTextColor(16, 185, 129); 
             doc.text(`TOTAL: $ ${totalGeneral.toLocaleString('es-AR', {minimumFractionDigits: 2})}`, 196, finalY, { align: "right" });
 
             doc.setFontSize(8);
@@ -639,7 +686,6 @@
             const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
             
             const rubroFiltro = document.getElementById('repRubro').value;
-            const cot = parseFloat(document.getElementById('cotizacionDolar').value) || 1;
             const fecha = new Date().toLocaleDateString('es-AR');
             
             let filtrados = bd_productos.filter(p => p.ID);
@@ -668,11 +714,11 @@
             if (tipo === 'precios') {
                 tituloDocumento = `Lista de Precios Oficial - Rubro: ${rubroFiltro}`;
                 doc.text(tituloDocumento, 14, 24);
-                doc.text(`Fecha: ${fecha} | Referencia Dólar: $${cot}`, 14, 29);
+                doc.text(`Fecha: ${fecha}`, 14, 29);
                 
                 columnas = ["Código", "Descripción / Artículo", "Rubro", "Precio Final"];
                 filas = filtrados.map(p => {
-                    let pFinal = p['Moneda (ARS/USD)'] === 'USD' ? (p.Precio || 0) * cot : (p.Precio || 0);
+                    let pFinal = obtenerPrecioPesosCalculado(p);
                     return [
                         p.ID,
                         p.Descripción || '(Sin descripción)',
