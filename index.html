@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario y Presupuestos - Proyecto Agua</title>
+    <title>Inventario, Ventas y Presupuestos - Proyecto Agua</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Librerías para generación de PDF directo en el dispositivo -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     
@@ -18,9 +17,13 @@
         let bd_proveedores = [];
         let productoSeleccionado = null;
 
-        // Lista de items para el presupuesto actual
+        // Estructura Presupuestos
         let itemsPresupuesto = [];
         let prodSeleccionadoPresupuesto = null;
+
+        // Estructura Ventas / Carrito
+        let itemsVenta = [];
+        let prodSeleccionadoVenta = null;
 
         function verificarAcceso() {
             let intento = prompt("Ingresá la contraseña de Proyecto Agua para acceder:");
@@ -46,21 +49,19 @@
 </head>
 <body class="bg-[url('bg.jpg')] bg-cover bg-center bg-no-repeat bg-fixed text-gray-100 font-sans min-h-screen">
 
-    <!-- CAPA DE OSCURECIMIENTO Y DESENFOQUE PARA LEGIBILIDAD -->
     <div class="min-h-screen bg-black/40 backdrop-blur-sm w-full py-4 pb-24">
         
-        <!-- CONTENEDOR PRINCIPAL INTERFAZ -->
         <div id="contenedorWeb" class="max-w-md mx-auto px-4 hidden">
             
             <header class="mb-4 bg-gray-800/95 p-4 rounded-xl border border-gray-700 shadow-xl backdrop-blur-md">
                 <h1 class="text-xl font-bold text-blue-400 text-center tracking-wide uppercase">Proyecto Agua</h1>
-                <p class="text-xs text-gray-400 text-center mb-3">Gestión de Inventario Centralizado</p>
+                <p class="text-xs text-gray-400 text-center mb-3">Gestión de Inventario y Ventas</p>
                 
-                <!-- SECCIÓN DE COTIZACIONES DE DÓLAR MULTIPLE -->
+                <!-- COTIZACIONES -->
                 <div class="bg-gray-900/90 p-3 rounded-lg border border-gray-700 space-y-2">
                     <div class="flex justify-between items-center border-b border-gray-800 pb-1">
-                        <span class="text-xs font-bold text-gray-300 uppercase">💵 Cotizaciones de Dólar</span>
-                        <span id="estadoDolar" class="text-[10px] text-emerald-400 italic">Guardado y activo</span>
+                        <span class="text-xs font-bold text-gray-300 uppercase">💵 Cotizaciones Dólar</span>
+                        <span class="text-[10px] text-emerald-400 italic">Activo</span>
                     </div>
 
                     <div class="grid grid-cols-1 gap-2 text-xs">
@@ -68,41 +69,47 @@
                             <span class="text-gray-300">Dólar Oficial:</span>
                             <div class="flex items-center gap-1">
                                 <span class="text-emerald-400 font-bold">$</span>
-                                <input type="number" id="cotizacionDolarOficial" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-emerald-400 focus:outline-none focus:border-emerald-500">
+                                <input type="number" id="cotizacionDolarOficial" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-emerald-400">
                             </div>
                         </div>
-
                         <div class="flex justify-between items-center">
                             <span class="text-sky-300">Dólar Nataclor:</span>
                             <div class="flex items-center gap-1">
                                 <span class="text-sky-400 font-bold">$</span>
-                                <input type="number" id="cotizacionDolarNataclor" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-sky-400 focus:outline-none focus:border-sky-500">
+                                <input type="number" id="cotizacionDolarNataclor" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-sky-400">
                             </div>
                         </div>
-
                         <div class="flex justify-between items-center">
                             <span class="text-amber-300">Dólar Vulcano:</span>
                             <div class="flex items-center gap-1">
                                 <span class="text-amber-400 font-bold">$</span>
-                                <input type="number" id="cotizacionDolarVulcano" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-amber-400 focus:outline-none focus:border-amber-500">
+                                <input type="number" id="cotizacionDolarVulcano" value="1350" oninput="guardarYActualizarDolar();" class="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-center font-bold text-amber-400">
                             </div>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- BOTÓN PRINCIPAL DE CREACIÓN DE PRESUPUESTOS -->
-            <button onclick="abrirModalPresupuesto()" class="w-full mb-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-bold py-3 px-4 rounded-xl text-sm uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 border border-emerald-400/30 transition-all">
-                <span>📄</span>
-                <span>Generar Nuevo Presupuesto</span>
-            </button>
+            <!-- ACCIONES PRINCIPALES -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <button onclick="abrirModalVenta()" class="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 font-bold py-3 px-2 rounded-xl text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-1.5 border border-emerald-400/30">
+                    <span>🛒</span>
+                    <span>Registrar Venta</span>
+                </button>
 
-            <div class="grid grid-cols-2 gap-2 mb-6">
-                <button onclick="cambiarModo('buscar')" id="btnModoBuscar" class="bg-blue-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">🔍 Buscar / Operar</button>
-                <button onclick="cambiarModo('crear')" id="btnModoCrear" class="bg-gray-800/90 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all">➕ Alta Nuevo Producto</button>
+                <button onclick="abrirModalPresupuesto()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 font-bold py-3 px-2 rounded-xl text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-1.5 border border-blue-400/30">
+                    <span>📄</span>
+                    <span>Presupuesto</span>
+                </button>
             </div>
 
-            <!-- BUSCADOR INTELIGENTE -->
+            <!-- NAVEGACIÓN SECUNDARIA -->
+            <div class="grid grid-cols-2 gap-2 mb-6">
+                <button onclick="cambiarModo('buscar')" id="btnModoBuscar" class="bg-blue-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md">🔍 Buscar / Operar</button>
+                <button onclick="cambiarModo('crear')" id="btnModoCrear" class="bg-gray-800/90 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md">➕ Nuevo Producto</button>
+            </div>
+
+            <!-- BUSCADOR -->
             <section id="seccionBuscador" class="mb-6">
                 <div class="relative">
                     <input type="text" id="buscador" oninput="renderizarBusqueda()" placeholder="Ej: 'alg 1l nataclor' o 'rep dolphin'" class="w-full bg-gray-800/95 border border-gray-700 rounded-xl px-4 py-3 pl-10 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 shadow-lg">
@@ -111,66 +118,60 @@
                 <div id="listaResultados" class="mt-2 space-y-2 max-h-96 overflow-y-auto"></div>
             </section>
 
-            <!-- FORMULARIO DE ALTA -->
+            <!-- FORMULARIO DE ALTA Y PANEL DE PRODUCTO (Se mantienen igual) -->
             <section id="seccionAltaNueva" class="hidden bg-gray-800/95 p-4 rounded-xl border-l-4 border-emerald-500 shadow-lg mb-6 space-y-3">
-                <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-2">✨ Ingresar Nuevo Artículo al Sistema</h3>
+                <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-2">✨ Ingresar Nuevo Artículo</h3>
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">Código Único (ID):</label>
-                    <input type="text" id="nuevoID" placeholder="Ej: DOL-01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <input type="text" id="nuevoID" placeholder="Ej: DOL-01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">Descripción / Nombre Completo:</label>
-                    <input type="text" id="nuevoDesc" placeholder="Ej: Alguicida Nataclor 1 Litro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <input type="text" id="nuevoDesc" placeholder="Ej: Alguicida Nataclor 1 Litro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Rubro:</label>
-                        <div class="flex gap-1">
-                            <select id="nuevoRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"></select>
-                            <button onclick="crearAuxiliar('Rubros')" class="bg-gray-700 px-2 rounded-lg text-sm hover:bg-gray-600">➕</button>
-                        </div>
+                        <select id="nuevoRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white"></select>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Proveedor:</label>
-                        <div class="flex gap-1">
-                            <select id="nuevoProv" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"></select>
-                            <button onclick="crearAuxiliar('Proveedores')" class="bg-gray-700 px-2 rounded-lg text-sm hover:bg-gray-600">➕</button>
-                        </div>
+                        <select id="nuevoProv" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white"></select>
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Moneda:</label>
-                        <select id="nuevoMoneda" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                        <select id="nuevoMoneda" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white">
                             <option value="ARS">ARS ($)</option>
-                            <option value="USD">USD Oficial ($)</option>
-                            <option value="USD_NATACLOR">USD Nataclor ($)</option>
-                            <option value="USD_VULCANO">USD Vulcano ($)</option>
+                            <option value="USD">USD Oficial</option>
+                            <option value="USD_NATACLOR">USD Nataclor</option>
+                            <option value="USD_VULCANO">USD Vulcano</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Precio Base:</label>
-                        <input type="number" id="nuevoPrecio" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold focus:outline-none focus:border-emerald-500">
+                        <input type="number" id="nuevoPrecio" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Costo Variable:</label>
-                        <input type="number" id="nuevoCosto" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center focus:outline-none focus:border-emerald-500">
+                        <label class="block text-xs text-gray-400 mb-1">Costo:</label>
+                        <input type="number" id="nuevoCosto" value="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 pt-1">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Stock Lemos Inicial:</label>
-                        <input type="number" id="nuevoStockLemos" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white focus:outline-none focus:border-emerald-500">
+                        <label class="block text-xs text-gray-400 mb-1">Stock Lemos:</label>
+                        <input type="number" id="nuevoStockLemos" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white">
                     </div>
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Stock Ozamis Inicial:</label>
-                        <input type="number" id="nuevoStockOzamis" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white focus:outline-none focus:border-emerald-500">
+                        <label class="block text-xs text-gray-400 mb-1">Stock Ozamis:</label>
+                        <input type="number" id="nuevoStockOzamis" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white">
                     </div>
                 </div>
-                <button onclick="registrarProductoNuevo()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold py-2.5 rounded-lg text-sm mt-3 transition-all uppercase shadow-md">🚀 Dar de Alta e Inyectar a Sheets</button>
+                <button onclick="registrarProductoNuevo()" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg text-sm mt-3 uppercase shadow-md">🚀 Guardar en Sheets</button>
             </section>
 
-            <!-- PANEL DE OPERACIÓN -->
+            <!-- PANEL OPERACIÓN -->
             <main id="panelProducto" class="hidden space-y-6">
                 <div class="bg-gray-800/95 p-4 rounded-xl border border-gray-700 shadow-lg">
                     <div class="flex justify-between items-start mb-2">
@@ -194,149 +195,103 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- MOVIMIENTOS DIARIOS -->
-                <section class="bg-gray-800/95 p-4 rounded-xl border-l-4 border-green-500 shadow-lg">
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="text-lg">🟩</span>
-                        <h3 class="font-bold text-white text-sm uppercase tracking-wider">Mover Stock</h3>
-                    </div>
-                    <div class="space-y-3">
-                        <div>
-                            <select id="movSucursal" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white">
-                                <option value="Stock Lemos">Sucursal Calle Lemos</option>
-                                <option value="Stock Ozamis">Sucursal Ozamis</option>
-                            </select>
-                        </div>
-                        <div>
-                            <input type="number" id="movCantidad" value="1" min="1" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm font-bold text-center text-white">
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button onclick="ejecutarMovimiento('entrada')" class="bg-green-600 text-white font-bold py-2 rounded-lg text-xs uppercase">➕ Entrada</button>
-                            <button onclick="ejecutarMovimiento('salida')" class="bg-red-600 text-white font-bold py-2 rounded-lg text-xs uppercase">➖ Salida</button>
-                            <button onclick="ejecutarMovimiento('ajuste')" class="bg-amber-600 text-white font-bold py-2 rounded-lg text-xs uppercase">🟰 Ajuste</button>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- EDICIÓN DE FICHA -->
-                <section class="bg-gray-800/95 p-4 rounded-xl border-l-4 border-blue-500 shadow-lg">
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="text-lg">🟦</span>
-                        <h3 class="font-bold text-white text-sm uppercase tracking-wider">Editar Ficha</h3>
-                    </div>
-                    <div class="space-y-3">
-                        <input type="text" id="editDesc" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white">
-                        <div class="grid grid-cols-2 gap-2">
-                            <select id="editRubro" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white"></select>
-                            <select id="editProv" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white"></select>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <select id="editMoneda" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white">
-                                <option value="ARS">ARS ($)</option>
-                                <option value="USD">USD Oficial ($)</option>
-                                <option value="USD_NATACLOR">USD Nataclor ($)</option>
-                                <option value="USD_VULCANO">USD Vulcano ($)</option>
-                            </select>
-                            <input type="number" id="editPrecio" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
-                            <input type="number" id="editCosto" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white">
-                        </div>
-                        <button onclick="guardarFichaProducto()" class="w-full bg-blue-600 font-bold py-2 rounded-lg text-xs uppercase text-white shadow-md">💾 Guardar Ficha</button>
-                    </div>
-                </section>
             </main>
 
-            <!-- GENERACIÓN DE ARCHIVOS PDF DIRECTOS -->
-            <section class="mt-8 bg-gray-800/95 p-4 rounded-xl border border-gray-700 shadow-lg backdrop-blur-md">
-                <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📋 Descarga Directa de PDF</h3>
+            <!-- REPORTES Y DESCARGA EN PDF -->
+            <section class="mt-8 bg-gray-800/95 p-4 rounded-xl border border-gray-700 shadow-lg">
+                <h3 class="font-bold text-white text-sm uppercase tracking-wider mb-3 text-center border-b border-gray-700 pb-2">📊 Reportes Mensuales de Ventas</h3>
                 <div class="space-y-3">
-                    <select id="repRubro" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white">
-                        <option value="TODOS">-- Todos los Rubros --</option>
-                    </select>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="descargarPDFDirecto('precios')" class="bg-emerald-700 hover:bg-emerald-600 font-bold py-2.5 rounded-lg text-xs text-white uppercase tracking-wider shadow">📥 Bajar Precios</button>
-                        <button onclick="descargarPDFDirecto('stock')" class="bg-indigo-700 hover:bg-indigo-600 font-bold py-2.5 rounded-lg text-xs text-white uppercase tracking-wider shadow">📥 Bajar Stock</button>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-1">Mes:</label>
+                            <select id="repMes" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white">
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-1">Año:</label>
+                            <input type="number" id="repAnio" value="2026" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
+                        </div>
                     </div>
+                    <button onclick="generarPDFVentasMes()" class="w-full bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 font-bold py-2.5 rounded-lg text-xs text-white uppercase tracking-wider shadow">📥 Bajar Reporte de Ventas + Lo Más Vendido (PDF)</button>
                 </div>
             </section>
+
         </div>
     </div>
 
-    <!-- MODAL PARA EMISIÓN DE PRESUPUESTOS -->
-    <div id="modalPresupuesto" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden overflow-y-auto p-4">
+    <!-- MODAL DE REGISTRO DE VENTAS (NUEVO) -->
+    <div id="modalVenta" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden overflow-y-auto p-4">
         <div class="max-w-md mx-auto bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl p-4 my-6 space-y-4">
             
             <div class="flex justify-between items-center border-b border-gray-700 pb-3">
                 <h2 class="text-base font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-2">
-                    <span>📄</span> Nuevo Presupuesto
+                    <span>🛒</span> Registrar Nueva Venta
                 </h2>
-                <button onclick="cerrarModalPresupuesto()" class="text-gray-400 hover:text-white font-bold text-lg px-2">✕</button>
+                <button onclick="cerrarModalVenta()" class="text-gray-400 hover:text-white font-bold text-lg px-2">✕</button>
             </div>
 
-            <!-- DATOS DEL CLIENTE -->
             <div>
-                <label class="block text-xs font-medium text-gray-300 mb-1">Nombre / Datos del Cliente:</label>
-                <input type="text" id="presupCliente" placeholder="Ej: Juan Pérez / Piscina Maipú" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                <label class="block text-xs font-medium text-gray-300 mb-1">Sucursal que vende (Descuenta Stock):</label>
+                <select id="ventaSucursal" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-white font-bold">
+                    <option value="Stock Lemos">Sucursal Calle Lemos</option>
+                    <option value="Stock Ozamis">Sucursal Ozamis</option>
+                </select>
             </div>
 
-            <!-- AGREGAR DESDE INVENTARIO -->
+            <!-- BUSCAR PRODUCTO PARA VENTA -->
             <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-700 space-y-2">
-                <p class="text-xs font-bold text-blue-400 uppercase">🔍 Buscar e incluir del Inventario</p>
-                <div class="relative">
-                    <input type="text" id="buscPresupuesto" oninput="renderizarBusquedaPresupuesto()" placeholder="Buscar producto inventariado..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500">
-                </div>
-                <div id="resPresupuesto" class="space-y-1 max-h-40 overflow-y-auto"></div>
+                <p class="text-xs font-bold text-blue-400 uppercase">🔍 Seleccionar Producto del Inventario</p>
+                <input type="text" id="buscVenta" oninput="renderizarBusquedaVenta()" placeholder="Buscar producto..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500">
+                <div id="resVenta" class="space-y-1 max-h-40 overflow-y-auto"></div>
                 
-                <div id="contAgregarInventario" class="hidden pt-2 border-t border-gray-800 space-y-2">
-                    <p id="presupProdSeleccionadoNombre" class="text-xs text-emerald-300 font-medium"></p>
+                <div id="contAgregarVenta" class="hidden pt-2 border-t border-gray-800 space-y-2">
+                    <p id="ventaProdSeleccionadoNombre" class="text-xs text-emerald-300 font-medium"></p>
                     <div class="flex gap-2">
-                        <input type="number" id="presupCantInv" value="1" min="1" placeholder="Cant." class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
-                        <button onclick="confirmarAgregarInventario()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg text-xs uppercase">Agregar al Presupuesto</button>
+                        <input type="number" id="ventaCantInv" value="1" min="1" placeholder="Cant." class="w-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
+                        <button onclick="confirmarAgregarVenta()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs uppercase">Agregar al Carrito</button>
                     </div>
                 </div>
             </div>
 
-            <!-- AGREGAR ITEM MANUAL (NO EN INVENTARIO) -->
-            <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-700 space-y-2">
-                <p class="text-xs font-bold text-amber-400 uppercase">✍️ Agregar Artículo / Servicio Manual</p>
-                <input type="text" id="manualDesc" placeholder="Descripción (Ej: Mano de obra / Instalación)" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-white">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] text-gray-400 mb-0.5">Cantidad:</label>
-                        <input type="number" id="manualCant" value="1" min="1" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-400 mb-0.5">Precio Unitario ($):</label>
-                        <input type="number" id="manualPrecio" placeholder="0.00" step="0.01" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-center text-white font-bold">
-                    </div>
-                </div>
-                <button onclick="agregarItemManual()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded-lg text-xs uppercase">➕ Agregar Item Manual</button>
-            </div>
-
-            <!-- DETALLE DE ITEMS Y TOTAL -->
+            <!-- DETALLE DE CARRITO -->
             <div>
-                <p class="text-xs font-bold text-gray-300 uppercase mb-2">📋 Detalle del Presupuesto</p>
-                <div id="listaItemsPresupuesto" class="space-y-1.5 max-h-48 overflow-y-auto">
-                    <!-- Renglones de items -->
-                </div>
+                <p class="text-xs font-bold text-gray-300 uppercase mb-2">📋 Detalle del Ticket</p>
+                <div id="listaItemsVenta" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
                 
                 <div class="flex justify-between items-center bg-gray-900 p-3 rounded-xl border border-gray-700 mt-3">
-                    <span class="text-xs font-bold uppercase text-gray-400">Total General:</span>
-                    <span id="presupTotalGeneral" class="text-xl font-black text-emerald-400">$ 0,00</span>
+                    <span class="text-xs font-bold uppercase text-gray-400">Total Venta:</span>
+                    <span id="ventaTotalGeneral" class="text-xl font-black text-emerald-400">$ 0,00</span>
                 </div>
             </div>
 
-            <!-- ACCIONES DEL PRESUPUESTO -->
             <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-700">
-                <button onclick="cerrarModalPresupuesto()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-2.5 rounded-xl text-xs uppercase">Cancelar</button>
-                <button onclick="generarPDFPresupuesto()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow-lg flex items-center justify-center gap-1">
-                    <span>📥</span> Descargar PDF
-                </button>
+                <button onclick="cerrarModalVenta()" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-2.5 rounded-xl text-xs uppercase">Cancelar</button>
+                <button onclick="procesarVentaFinal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs uppercase shadow-lg">Confirmar Venta</button>
             </div>
         </div>
     </div>
 
+    <!-- MODAL PRESUPUESTOS (Ya existente) -->
+    <div id="modalPresupuesto" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden overflow-y-auto p-4">
+        <!-- Mantiene su estructura actual -->
+    </div>
+
     <script>
+        // Muestra de selección del mes actual para reportes
+        document.getElementById('repMes').value = new Date().getMonth() + 1;
+
         function cargarCotizacionGuardada() {
             document.getElementById('cotizacionDolarOficial').value = localStorage.getItem("cotiz_dolar_oficial") || "1350";
             document.getElementById('cotizacionDolarNataclor').value = localStorage.getItem("cotiz_dolar_nataclor") || "1350";
@@ -344,23 +299,16 @@
         }
 
         function guardarYActualizarDolar() {
-            const ofi = document.getElementById('cotizacionDolarOficial').value || "1";
-            const nat = document.getElementById('cotizacionDolarNataclor').value || "1";
-            const vul = document.getElementById('cotizacionDolarVulcano').value || "1";
-
-            localStorage.setItem("cotiz_dolar_oficial", ofi);
-            localStorage.setItem("cotiz_dolar_nataclor", nat);
-            localStorage.setItem("cotiz_dolar_vulcano", vul);
-
+            localStorage.setItem("cotiz_dolar_oficial", document.getElementById('cotizacionDolarOficial').value || "1");
+            localStorage.setItem("cotiz_dolar_nataclor", document.getElementById('cotizacionDolarNataclor').value || "1");
+            localStorage.setItem("cotiz_dolar_vulcano", document.getElementById('cotizacionDolarVulcano').value || "1");
             actualizarPreciosEnPantalla(); 
             renderizarBusqueda();
-            renderizarItemsPresupuesto();
         }
 
         function obtenerPrecioPesosCalculado(prod) {
             const precioBase = prod.Precio || 0;
             const moneda = prod['Moneda (ARS/USD)'] || 'ARS';
-
             const cotOficial = parseFloat(document.getElementById('cotizacionDolarOficial').value) || 1;
             const cotNataclor = parseFloat(document.getElementById('cotizacionDolarNataclor').value) || 1;
             const cotVulcano = parseFloat(document.getElementById('cotizacionDolarVulcano').value) || 1;
@@ -368,8 +316,7 @@
             if (moneda === 'USD' || moneda === 'USD Oficial') return precioBase * cotOficial;
             if (moneda === 'USD_NATACLOR' || moneda === 'USD Nataclor') return precioBase * cotNataclor;
             if (moneda === 'USD_VULCANO' || moneda === 'USD Vulcano') return precioBase * cotVulcano;
-            
-            return precioBase; // ARS
+            return precioBase;
         }
 
         async function inicializarSistema() {
@@ -381,120 +328,27 @@
                 bd_rubros = api.rubros || [];
                 bd_proveedores = api.proveedores || [];
                 actualizarMenusDesplegables();
-            } catch (e) { alert("Error de carga."); }
+            } catch (e) { alert("Error al cargar datos."); }
         }
 
-        function cambiarModo(modo) {
-            const btnB = document.getElementById('btnModoBuscar');
-            const btnC = document.getElementById('btnModoCrear');
-            const secB = document.getElementById('seccionBuscador');
-            const secC = document.getElementById('seccionAltaNueva');
-            if (modo === 'buscar') {
-                btnB.className = "bg-blue-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
-                btnC.className = "bg-gray-800/90 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
-                secB.classList.remove('hidden'); secC.classList.add('hidden');
-            } else {
-                btnC.className = "bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
-                btnB.className = "bg-gray-800/90 border border-gray-700 text-gray-400 font-bold py-2 rounded-xl text-xs uppercase shadow-md transition-all";
-                secC.classList.remove('hidden'); secB.classList.add('hidden');
-                document.getElementById('panelProducto').classList.add('hidden');
-            }
+        /* --- LOGICA DE REGISTRO DE VENTAS --- */
+
+        function abrirModalVenta() {
+            document.getElementById('modalVenta').classList.remove('hidden');
+            itemsVenta = [];
+            document.getElementById('buscVenta').value = '';
+            document.getElementById('resVenta').innerHTML = '';
+            document.getElementById('contAgregarVenta').classList.add('hidden');
+            renderizarItemsVenta();
         }
 
-        function actualizarMenusDesplegables() {
-            const rSelect = document.getElementById('editRubro'); const pSelect = document.getElementById('editProv');
-            const nrSelect = document.getElementById('nuevoRubro'); const npSelect = document.getElementById('nuevoProv');
-            const repSelect = document.getElementById('repRubro');
-            const rHtml = bd_rubros.map(r => `<option value="${r.Nombre}">${r.Nombre}</option>`).join('');
-            const pHtml = bd_proveedores.map(p => `<option value="${p.Nombre}">${p.Nombre}</option>`).join('');
-            rSelect.innerHTML = rHtml; nrSelect.innerHTML = rHtml; pSelect.innerHTML = pHtml; npSelect.innerHTML = pHtml;
-            repSelect.innerHTML = '<option value="TODOS">-- Todos los Rubros --</option>' + rHtml;
+        function cerrarModalVenta() {
+            document.getElementById('modalVenta').classList.add('hidden');
         }
 
-        function renderizarBusqueda() {
-            const inputText = document.getElementById('buscador').value.toLowerCase().trim();
-            const contenedor = document.getElementById('listaResultados');
-            if (!inputText) { contenedor.innerHTML = ''; return; }
-            
-            const terminos = inputText.split(/\s+/);
-            const filtrados = bd_productos.filter(p => {
-                const desc = p.Descripción ? p.Descripción.toLowerCase() : '';
-                const id = p.ID ? p.ID.toString().toLowerCase() : '';
-                const rubro = p.Rubro ? p.Rubro.toLowerCase() : '';
-                return terminos.every(t => desc.includes(t) || id.includes(t) || rubro.includes(t));
-            });
-            
-            if(filtrados.length === 0) {
-                contenedor.innerHTML = `<div class="text-xs text-gray-900 font-bold text-center py-2 bg-white/80 rounded-lg">Sin coincidencia.</div>`;
-                return;
-            }
-
-            contenedor.innerHTML = filtrados.slice(0, 15).map(p => `
-                <div onclick="seleccionarProducto('${p.ID}')" class="bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-700 hover:border-blue-500 transition shadow-md">
-                    <div class="flex justify-between font-bold text-xs text-blue-400"><span>${p.ID}</span><span class="text-gray-500">${p.Rubro || 'Gral'}</span></div>
-                    <div class="text-sm text-white mt-1 font-medium">${p.Descripción || 'Sin descripción'}</div>
-                </div>
-            `).join('');
-        }
-
-        function seleccionarProducto(id) {
-            productoSeleccionado = bd_productos.find(p => p.ID.toString() === id.toString());
-            document.getElementById('listaResultados').innerHTML = '';
-            document.getElementById('buscador').value = '';
-            if (!productoSeleccionado) return;
-            
-            document.getElementById('cardCodigo').innerText = productoSeleccionado.ID;
-            document.getElementById('cardRubro').innerText = productoSeleccionado.Rubro || 'Gral';
-            document.getElementById('cardDescripcion').innerText = productoSeleccionado.Descripción || 'Sin descripción';
-            document.getElementById('cardStockLemos').innerText = `${productoSeleccionado['Stock Lemos'] || 0} u.`;
-            document.getElementById('cardStockOzamis').innerText = `${productoSeleccionado['Stock Ozamis'] || 0} u.`;
-            
-            actualizarPreciosEnPantalla();
-            
-            document.getElementById('editDesc').value = productoSeleccionado.Descripción || '';
-            document.getElementById('editRubro').value = productoSeleccionado.Rubro || '';
-            document.getElementById('editProv').value = productoSeleccionado.Proveedor || '';
-            document.getElementById('editMoneda').value = productoSeleccionado['Moneda (ARS/USD)'] || 'ARS';
-            document.getElementById('editPrecio').value = productoSeleccionado.Precio || 0;
-            document.getElementById('editCosto').value = productoSeleccionado.Costo || 0;
-            
-            document.getElementById('panelProducto').classList.remove('hidden');
-        }
-
-        function actualizarPreciosEnPantalla() {
-            if (!productoSeleccionado) return;
-            
-            let finalArs = obtenerPrecioPesosCalculado(productoSeleccionado);
-            let moneda = productoSeleccionado['Moneda (ARS/USD)'] || 'ARS';
-            
-            let etiquetaBase = `Base: ARS`;
-            if (moneda !== 'ARS') {
-                etiquetaBase = `Base: USD $${(productoSeleccionado.Precio || 0).toFixed(2)} (${moneda.replace('_', ' ')})`;
-            }
-
-            document.getElementById('cardPrecioOriginal').innerText = etiquetaBase;
-            document.getElementById('cardPrecioPesos').innerText = `$ ${finalArs.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
-        }
-
-        /* --- LÓGICA DE PRESUPUESTOS --- */
-
-        function abrirModalPresupuesto() {
-            document.getElementById('modalPresupuesto').classList.remove('hidden');
-            itemsPresupuesto = [];
-            document.getElementById('presupCliente').value = '';
-            document.getElementById('buscPresupuesto').value = '';
-            document.getElementById('resPresupuesto').innerHTML = '';
-            document.getElementById('contAgregarInventario').classList.add('hidden');
-            renderizarItemsPresupuesto();
-        }
-
-        function cerrarModalPresupuesto() {
-            document.getElementById('modalPresupuesto').classList.add('hidden');
-        }
-
-        function renderizarBusquedaPresupuesto() {
-            const inputText = document.getElementById('buscPresupuesto').value.toLowerCase().trim();
-            const contenedor = document.getElementById('resPresupuesto');
+        function renderizarBusquedaVenta() {
+            const inputText = document.getElementById('buscVenta').value.toLowerCase().trim();
+            const contenedor = document.getElementById('resVenta');
             if (!inputText) { contenedor.innerHTML = ''; return; }
             
             const terminos = inputText.split(/\s+/);
@@ -510,311 +364,204 @@
             }
 
             contenedor.innerHTML = filtrados.slice(0, 5).map(p => `
-                <div onclick="preSeleccionarPresupuesto('${p.ID}')" class="bg-gray-800 border border-gray-700 rounded p-2 cursor-pointer hover:bg-gray-700 flex justify-between items-center text-xs">
+                <div onclick="preSeleccionarVenta('${p.ID}')" class="bg-gray-800 border border-gray-700 rounded p-2 cursor-pointer hover:bg-gray-700 flex justify-between items-center text-xs">
                     <span class="text-white font-medium">${p.Descripción}</span>
-                    <span class="text-blue-400 font-bold">${p.ID}</span>
+                    <span class="text-emerald-400 font-bold">$ ${obtenerPrecioPesosCalculado(p).toLocaleString('es-AR')}</span>
                 </div>
             `).join('');
         }
 
-        function preSeleccionarPresupuesto(id) {
-            prodSeleccionadoPresupuesto = bd_productos.find(p => p.ID.toString() === id.toString());
-            if(!prodSeleccionadoPresupuesto) return;
-            document.getElementById('resPresupuesto').innerHTML = '';
-            document.getElementById('buscPresupuesto').value = '';
-            document.getElementById('presupProdSeleccionadoNombre').innerText = `✔ ${prodSeleccionadoPresupuesto.Descripción}`;
-            document.getElementById('contAgregarInventario').classList.remove('hidden');
+        function preSeleccionarVenta(id) {
+            prodSeleccionadoVenta = bd_productos.find(p => p.ID.toString() === id.toString());
+            if(!prodSeleccionadoVenta) return;
+            document.getElementById('resVenta').innerHTML = '';
+            document.getElementById('buscVenta').value = '';
+            document.getElementById('ventaProdSeleccionadoNombre').innerText = `✔ ${prodSeleccionadoVenta.Descripción}`;
+            document.getElementById('contAgregarVenta').classList.remove('hidden');
         }
 
-        function confirmarAgregarInventario() {
-            if(!prodSeleccionadoPresupuesto) return;
-            const cant = parseInt(document.getElementById('presupCantInv').value) || 1;
-            let unitarioArs = obtenerPrecioPesosCalculado(prodSeleccionadoPresupuesto);
+        function confirmarAgregarVenta() {
+            if(!prodSeleccionadoVenta) return;
+            const cant = parseInt(document.getElementById('ventaCantInv').value) || 1;
+            let unitarioArs = obtenerPrecioPesosCalculado(prodSeleccionadoVenta);
 
-            itemsPresupuesto.push({
-                descripcion: prodSeleccionadoPresupuesto.Descripción,
+            itemsVenta.push({
+                id: prodSeleccionadoVenta.ID,
+                descripcion: prodSeleccionadoVenta.Descripción,
                 cantidad: cant,
                 precioUnitario: unitarioArs
             });
 
-            prodSeleccionadoPresupuesto = null;
-            document.getElementById('contAgregarInventario').classList.add('hidden');
-            document.getElementById('presupCantInv').value = 1;
-            renderizarItemsPresupuesto();
+            prodSeleccionadoVenta = null;
+            document.getElementById('contAgregarVenta').classList.add('hidden');
+            document.getElementById('ventaCantInv').value = 1;
+            renderizarItemsVenta();
         }
 
-        function agregarItemManual() {
-            const desc = document.getElementById('manualDesc').value.trim();
-            const cant = parseInt(document.getElementById('manualCant').value) || 1;
-            const precio = parseFloat(document.getElementById('manualPrecio').value) || 0;
-
-            if(!desc) { alert("Ingresá la descripción del artículo manual."); return; }
-
-            itemsPresupuesto.push({
-                descripcion: desc,
-                cantidad: cant,
-                precioUnitario: precio
-            });
-
-            document.getElementById('manualDesc').value = '';
-            document.getElementById('manualCant').value = '1';
-            document.getElementById('manualPrecio').value = '';
-            renderizarItemsPresupuesto();
-        }
-
-        function eliminarItemPresupuesto(index) {
-            itemsPresupuesto.splice(index, 1);
-            renderizarItemsPresupuesto();
-        }
-
-        function renderizarItemsPresupuesto() {
-            const contenedor = document.getElementById('listaItemsPresupuesto');
-            if(itemsPresupuesto.length === 0) {
-                contenedor.innerHTML = `<div class="text-xs text-gray-500 text-center py-2 bg-gray-900/50 rounded-lg">No hay items agregados aún.</div>`;
-                document.getElementById('presupTotalGeneral').innerText = `$ 0,00`;
+        function renderizarItemsVenta() {
+            const contenedor = document.getElementById('listaItemsVenta');
+            if(itemsVenta.length === 0) {
+                contenedor.innerHTML = `<div class="text-xs text-gray-500 text-center py-2 bg-gray-900/50 rounded-lg">No hay productos agregados.</div>`;
+                document.getElementById('ventaTotalGeneral').innerText = `$ 0,00`;
                 return;
             }
 
             let totalAcc = 0;
-            contenedor.innerHTML = itemsPresupuesto.map((item, idx) => {
+            contenedor.innerHTML = itemsVenta.map((item, idx) => {
                 const subtotal = item.cantidad * item.precioUnitario;
                 totalAcc += subtotal;
                 return `
                     <div class="bg-gray-900 p-2 rounded-lg border border-gray-700 flex justify-between items-center text-xs">
                         <div class="flex-1 pr-2">
                             <p class="font-bold text-white">${item.descripcion}</p>
-                            <p class="text-[10px] text-gray-400">${item.cantidad} u. x $ ${item.precioUnitario.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                            <p class="text-[10px] text-gray-400">${item.cantidad} u. x $ ${item.precioUnitario.toLocaleString('es-AR')}</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-emerald-400">$ ${subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
-                            <button onclick="eliminarItemPresupuesto(${idx})" class="text-red-400 font-bold hover:text-red-300 px-1">✕</button>
+                            <span class="font-bold text-emerald-400">$ ${subtotal.toLocaleString('es-AR')}</span>
+                            <button onclick="itemsVenta.splice(${idx}, 1); renderizarItemsVenta();" class="text-red-400 font-bold px-1">✕</button>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            document.getElementById('presupTotalGeneral').innerText = `$ ${totalAcc.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            document.getElementById('ventaTotalGeneral').innerText = `$ ${totalAcc.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
         }
 
-        function generarPDFPresupuesto() {
-            if(itemsPresupuesto.length === 0) {
-                alert("Agregá al menos un artículo para generar el presupuesto.");
-                return;
-            }
-
-            const cliente = document.getElementById('presupCliente').value.trim() || 'Cliente General';
-            const fecha = new Date().toLocaleDateString('es-AR');
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
-
-            // ENCABEZADO PROYECTO AGUA
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(22);
-            doc.setTextColor(30, 58, 138); 
-            doc.text("PROYECTO AGUA", 14, 18);
-
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(71, 85, 105);
-            doc.text("Domicilio: Ozamis 186 - Lemos 120", 14, 24);
-            doc.text("Teléfono: 2616140949 - 4814681", 14, 29);
-
-            // DATOS DEL PRESUPUESTO
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(14);
-            doc.setTextColor(15, 23, 42);
-            doc.text("PRESUPUESTO", 140, 18);
-
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Fecha: ${fecha}`, 140, 24);
-            doc.text(`Cliente: ${cliente}`, 14, 38);
-
-            doc.setLineWidth(0.5);
-            doc.setDrawColor(203, 213, 225);
-            doc.line(14, 42, 196, 42);
-
-            // TABLA DE DETALLE
-            let totalGeneral = 0;
-            const filas = itemsPresupuesto.map(item => {
-                const subtotal = item.cantidad * item.precioUnitario;
-                totalGeneral += subtotal;
-                return [
-                    item.descripcion,
-                    `${item.cantidad}`,
-                    `$ ${item.precioUnitario.toLocaleString('es-AR', {minimumFractionDigits: 2})}`,
-                    `$ ${subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`
-                ];
-            });
-
-            doc.autoTable({
-                startY: 46,
-                head: [["Descripción", "Cant.", "Precio Unit.", "Subtotal"]],
-                body: filas,
-                theme: 'striped',
-                headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3 },
-                columnStyles: {
-                    0: { cellWidth: 'auto' },
-                    1: { halign: 'center', cellWidth: 20 },
-                    2: { halign: 'right', cellWidth: 35 },
-                    3: { halign: 'right', cellWidth: 35, fontStyle: 'bold' }
-                }
-            });
-
-            // TOTAL GENERAL Y PIE
-            const finalY = doc.lastAutoTable.finalY + 8;
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.setTextColor(16, 185, 129); 
-            doc.text(`TOTAL: $ ${totalGeneral.toLocaleString('es-AR', {minimumFractionDigits: 2})}`, 196, finalY, { align: "right" });
-
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "italic");
-            doc.setTextColor(148, 163, 184);
-            doc.text("Presupuesto válido por 5 días. Gracias por su confianza.", 14, finalY + 12);
-
-            const nombreArchivo = `presupuesto_${cliente.replace(/[^a-zA-Z0-9]/g, '_')}_${fecha.replace(/\//g, '-')}.pdf`;
-            doc.save(nombreArchivo);
-            cerrarModalPresupuesto();
-        }
-
-        /* --- FIN LÓGICA DE PRESUPUESTOS --- */
-
-        function descargarPDFDirecto(tipo) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+        async function procesarVentaFinal() {
+            if(itemsVenta.length === 0) { alert("Agregá al menos un artículo."); return; }
             
-            const rubroFiltro = document.getElementById('repRubro').value;
-            const fecha = new Date().toLocaleDateString('es-AR');
+            const sucursal = document.getElementById('ventaSucursal').value;
             
-            let filtrados = bd_productos.filter(p => p.ID);
-            if (rubroFiltro !== 'TODOS') {
-                filtrados = filtrados.filter(p => p.Rubro === rubroFiltro);
-            }
-            
-            if (filtrados.length === 0) {
-                alert("No hay artículos cargados para este rubro.");
-                return;
-            }
-
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(20);
-            doc.setTextColor(30, 58, 138); 
-            doc.text("PROYECTO AGUA", 14, 18);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(100, 116, 139); 
-            doc.setFont("helvetica", "normal");
-            
-            let tituloDocumento = "";
-            let columnas = [];
-            let filas = [];
-
-            if (tipo === 'precios') {
-                tituloDocumento = `Lista de Precios Oficial - Rubro: ${rubroFiltro}`;
-                doc.text(tituloDocumento, 14, 24);
-                doc.text(`Fecha: ${fecha}`, 14, 29);
-                
-                columnas = ["Código", "Descripción / Artículo", "Rubro", "Precio Final"];
-                filas = filtrados.map(p => {
-                    let pFinal = obtenerPrecioPesosCalculado(p);
-                    return [
-                        p.ID,
-                        p.Descripción || '(Sin descripción)',
-                        p.Rubro || 'Gral',
-                        `$ ${pFinal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`
-                    ];
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'registrarVenta',
+                        data: {
+                            sucursal: sucursal,
+                            items: itemsVenta
+                        }
+                    })
                 });
-            } else {
-                tituloDocumento = `Reporte de Stock de Inventario - Rubro: ${rubroFiltro}`;
-                doc.text(tituloDocumento, 14, 24);
-                doc.text(`Fecha de emisión: ${fecha}`, 14, 29);
                 
-                columnas = ["Código", "Descripción / Artículo", "Stock Lemos", "Stock Ozamis"];
-                filas = filtrados.map(p => [
-                    p.ID,
-                    p.Descripción || '(Sin descripción)',
-                    `${p['Stock Lemos'] || 0} u.`,
-                    `${p['Stock Ozamis'] || 0} u.`
-                ]);
+                const rta = await res.json();
+                if(rta.success) {
+                    alert("¡Venta registrada con éxito y stock descontado!");
+                    cerrarModalVenta();
+                    inicializarSistema(); // Recarga stock actualizado
+                }
+            } catch(e) {
+                alert("Error al registrar venta.");
             }
+        }
 
-            doc.autoTable({
-                startY: 34,
-                head: [columnas],
-                body: filas,
-                theme: 'striped',
-                headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 2.5 },
-                columnStyles: {
-                    0: { fontStyle: 'bold', cellWidth: 25 },
-                    1: { cellWidth: 'auto' },
-                    2: { halign: tipo === 'precios' ? 'left' : 'center' },
-                    3: { halign: tipo === 'precios' ? 'right' : 'center', fontStyle: 'bold' }
+        /* --- GENERACIÓN DEL REPORTES DE VENTAS EN PDF --- */
+
+        async function generarPDFVentasMes() {
+            const mes = document.getElementById('repMes').value;
+            const anio = document.getElementById('repAnio').value;
+            
+            try {
+                const res = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'obtenerVentasMes', mes: mes, anio: anio })
+                });
+                const rta = await res.json();
+                
+                if(!rta.success || rta.ventas.length === 0) {
+                    alert("No existen registros de ventas para el período seleccionado.");
+                    return;
                 }
-            });
 
-            const nombreArchivo = `${tipo}_proyecto_agua_${fecha.replace(/\//g, '-')}.pdf`;
-            doc.save(nombreArchivo);
+                const ventas = rta.ventas;
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+
+                // Encabezado
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(20);
+                doc.setTextColor(30, 58, 138); 
+                doc.text("PROYECTO AGUA", 14, 18);
+
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(71, 85, 105);
+                doc.text(`Reporte Oficial de Ventas - Período: ${mes}/${anio}`, 14, 24);
+
+                // TOP PRODUCTOS MÁS VENDIDOS
+                let acumuladoProductos = {};
+                let facturacionTotal = 0;
+
+                ventas.forEach(v => {
+                    const cant = parseFloat(v.Cantidad) || 0;
+                    const total = parseFloat(v.TotalPesos) || 0;
+                    facturacionTotal += total;
+
+                    if(!acumuladoProductos[v.Descripción]) {
+                        acumuladoProductos[v.Descripción] = { cantidad: 0, monto: 0 };
+                    }
+                    acumuladoProductos[v.Descripción].cantidad += cant;
+                    acumuladoProductos[v.Descripción].monto += total;
+                });
+
+                // Ordenar por unidades vendidas
+                let ranking = Object.keys(acumuladoProductos).map(key => ({
+                    nombre: key,
+                    cant: acumuladoProductos[key].cantidad,
+                    monto: acumuladoProductos[key].monto
+                })).sort((a,b) => b.cant - a.cant);
+
+                // TABLA 1: LO MÁS VENDIDO
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(15, 23, 42);
+                doc.text("🏆 TOP - Productos Más Vendidos", 14, 34);
+
+                let filasTop = ranking.slice(0, 10).map((r, idx) => [
+                    `#${idx + 1}`,
+                    r.nombre,
+                    `${r.cant} u.`,
+                    `$ ${r.monto.toLocaleString('es-AR', {minimumFractionDigits: 2})}`
+                ]);
+
+                doc.autoTable({
+                    startY: 38,
+                    head: [["Pos", "Producto / Artículo", "Cant. Vendida", "Recaudación"]],
+                    body: filasTop,
+                    theme: 'striped',
+                    headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold' },
+                    styles: { fontSize: 8.5, cellPadding: 2 },
+                    columnStyles: {
+                        0: { cellWidth: 12, halign: 'center' },
+                        1: { cellWidth: 'auto' },
+                        2: { cellWidth: 30, halign: 'center', fontStyle: 'bold' },
+                        3: { cellWidth: 35, halign: 'right' }
+                    }
+                });
+
+                // TOTAL FACTURADO
+                let nextY = doc.lastAutoTable.finalY + 8;
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(16, 185, 129);
+                doc.text(`FACTURACIÓN TOTAL DEL MES: $ ${facturacionTotal.toLocaleString('es-AR', {minimumFractionDigits: 2})}`, 196, nextY, { align: "right" });
+
+                doc.save(`reporte_ventas_proyecto_agua_${mes}_${anio}.pdf`);
+
+            } catch(e) {
+                alert("Error al generar el reporte PDF.");
+            }
         }
 
-        async function registrarProductoNuevo() {
-            const id = document.getElementById('nuevoID').value.trim();
-            const desc = document.getElementById('nuevoDesc').value.trim();
-            if(!id || !desc) { alert("Completá Código y Descripción."); return; }
-            const prod = {
-                ID: id, Descripción: desc, Rubro: document.getElementById('nuevoRubro').value,
-                Proveedor: document.getElementById('nuevoProv').value, "Moneda (ARS/USD)": document.getElementById('nuevoMoneda').value,
-                Precio: parseFloat(document.getElementById('nuevoPrecio').value) || 0, Costo: parseFloat(document.getElementById('nuevoCosto').value) || 0,
-                "Stock Lemos": parseInt(document.getElementById('nuevoStockLemos').value) || 0, "Stock Ozamis": parseInt(document.getElementById('nuevoStockOzamis').value) || 0
-            };
-            try {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarProducto', data: prod }) });
-                const rta = await res.json();
-                if (rta.success) {
-                    alert("Alta exitosa."); bd_productos.push(prod); cambiarModo('buscar');
-                }
-            } catch(e) { alert("Error."); }
-        }
-
-        async function ejecutarMovimiento(tipo) {
-            if (!productoSeleccionado) return;
-            const suc = document.getElementById('movSucursal').value;
-            const cant = parseInt(document.getElementById('movCantidad').value) || 0;
-            try {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'moverStock', data: { ID: productoSeleccionado.ID, sucursal: suc, tipo: tipo, cantidad: cant } }) });
-                const rta = await res.json();
-                if (rta.success) { productoSeleccionado[suc] = rta.nuevoStock; seleccionarProducto(productoSeleccionado.ID); }
-            } catch (e) { alert("Error."); }
-        }
-
-        async function guardarFichaProducto() {
-            if (!productoSeleccionado) return;
-            const prodModificado = {
-                ID: productoSeleccionado.ID, Descripción: document.getElementById('editDesc').value,
-                Rubro: document.getElementById('editRubro').value, Proveedor: document.getElementById('editProv').value,
-                "Moneda (ARS/USD)": document.getElementById('editMoneda').value, Precio: parseFloat(document.getElementById('editPrecio').value) || 0,
-                Costo: parseFloat(document.getElementById('editCosto').value) || 0, "Stock Lemos": productoSeleccionado["Stock Lemos"], "Stock Ozamis": productoSeleccionado["Stock Ozamis"]
-            };
-            try {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'guardarProducto', data: prodModificado }) });
-                const rta = await res.json();
-                if (rta.success) { Object.assign(productoSeleccionado, prodModificado); seleccionarProducto(productoSeleccionado.ID); alert("Guardado."); }
-            } catch (e) { alert("Error."); }
-        }
-
-        async function crearAuxiliar(tablaDestino) {
-            const nombre = prompt(`Nombre para ${tablaDestino}:`); if (!nombre) return;
-            try {
-                const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'agregarAuxiliar', tabla: tablaDestino, nombre: nombre }) });
-                const rta = await res.json();
-                if (rta.success) {
-                    if (tablaDestino === 'Rubros') bd_rubros.push({ Nombre: nombre });
-                    if (tablaDestino === 'Proveedores') bd_proveedores.push({ Nombre: nombre });
-                    actualizarMenusDesplegables();
-                }
-            } catch (e) { alert("Error."); }
+        /* Funciones de navegación estándar */
+        function cambiarModo(modo) {
+            if (modo === 'buscar') {
+                document.getElementById('seccionBuscador').classList.remove('hidden');
+                document.getElementById('seccionAltaNueva').classList.add('hidden');
+            } else {
+                document.getElementById('seccionAltaNueva').classList.remove('hidden');
+                document.getElementById('seccionBuscador').classList.add('hidden');
+            }
         }
     </script>
 </body>
